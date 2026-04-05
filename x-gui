@@ -1,11 +1,32 @@
-/**
- * Hook.js Lite
- * Version: 1.5 Lite
- * Original Author: Landsedge
- * Contributors: redhorse26, juro50000
- */
-(async()=>{let e=document.querySelector("#app")||document.body,t=Object.keys(e).find(e=>e.startsWith("__react")),n=null,o=null;if(t&&function e(t,o=0){if(!(!t||o>25||n)){try{if(t.memoizedState){let i=t.memoizedState,s=0;for(;i&&s<20&&!n;){let a=i.memoizedState;if(a&&void 0!==a.hasJoined&&a.send&&a.onStateChange)return void(n=a);i=i.next,s++}}}catch{}e(t.child,o+1),e(t.sibling,o+1)}}(e[t]),!n)return;if(window.messageFlow=[],window.monitorEnabled=!0,window.interceptEnabled=!1,window.interceptQueue=[],window.interceptIncoming=!1,window.interceptOutgoing=!1,window.repeaterMessages=[],window.interceptRules=new Map,window.eventListeners=new Map,window.wsConnected=!0,n.connection&&n.connection.transport&&n.connection.transport.ws){let i=n.connection.transport.ws,s=i.onmessage,a=i.onclose,r=i.onerror;i.onmessage=function(e){if(window.monitorEnabled)try{Date.now()}catch(t){}return s.call(this,e)},i.onclose=function(e){window.wsConnected=!1,a&&a.call(this,e)},i.onerror=function(e){window.wsConnected=!1,r&&r.call(this,e)}}let l=n.onMessage.bind(n),c=new Map,d=new Map;n.onMessage=function(e,t){let n=function(...n){let o="*"===e?n[0]:e,i="*"===e?n[1]:n[0];if(window.breakpoints){let s=e=>{let t=`${o}_${e}`,n=window.breakpoints.get(t);if(n&&n.enabled){n.hitCount++;try{n.callback(i,o,e)}catch(s){}}};s("IN"),s("BOTH")}let a=window.eventListeners.get(o);a&&a.length>0&&a.forEach(e=>{try{e(i,o)}catch(t){}});let r=window.interceptRules.get(o);if(r&&r.enabled&&"IN"===r.direction){if("DROP"===r.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===r.action)try{let l=r.transform(i);window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:l,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:i});let c=[...n];return 1===c.length?c[0]=l:2===c.length&&(c[1]=l),t(...c)}catch(d){}}if(!window.interceptEnabled||!window.interceptIncoming)return window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random()}),t(...n);{let m={direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),originalArgs:n,originalCallback:t,status:"pending"};window.interceptQueue.push(m)}};return c.set(e,n),d.set(e,t),l(e,n)};var m=n.send.bind(n);n.send=function(e,t){if(window.breakpoints){let n=n=>{let o=`${e}_${n}`,i=window.breakpoints.get(o);if(i&&i.enabled){i.hitCount++;try{i.callback(t,e,n)}catch(s){}}};n("OUT"),n("BOTH")}let o=window.interceptRules.get(e);if(o&&o.enabled&&"OUT"===o.direction){if("DROP"===o.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===o.action)try{let i=o.transform(t);return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:t}),m(e,i)}catch(s){}}if(!window.interceptEnabled||!window.interceptOutgoing)return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random()}),m(e,t);{let a={direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),originalType:e,originalData:JSON.parse(JSON.stringify(t)),status:"pending"};window.interceptQueue.push(a)}};let p=window.location.href.includes("/host");if(p)o={name:"Host"};else{n.state&&n.state.players||await new Promise(e=>{let t=setInterval(()=>{n.state&&n.state.players&&(clearInterval(t),e())},100)});let g=n.state.players;o=Array.from(g.values())[0]}o&&(window.colyseusRoom=n,window.me=o,window.myPlayer=o,window.colyseus={room:n,state:n.state,connection:n.connection,sessionId:n.sessionId,id:n.id,name:n.name,players:n.state?.players,getRoomData:()=>({sessionId:n.sessionId,id:n.id,name:n.name,hasJoined:n.hasJoined}),getAllPlayers:()=>n.state?.players?Array.from(n.state.players.entries()).map(([e,t])=>({id:e,name:t.name,player:t})):[]},window.hook={room:n,me:o,inspect(){console.log("Room:",n),console.log("Player:",o),console.log("Colyseus:",window.colyseus)},sendMessage(e,t={},o="OUT"){if(n){if("OUT"===o)return n.send(e,t);if("IN"===o){let i=d.get(e)||d.get("*");i&&(i(t),window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),simulated:!0}))}}},listen(e,t,n="BOTH"){if("function"!=typeof t||!["IN","OUT","BOTH"].includes(n))return;window.breakpoints||(window.breakpoints=new Map);let o=`${e}_${n}`;window.breakpoints.set(o,{messageType:e,callback:t,direction:n,enabled:!0,hitCount:0})},unlisten(e,t="BOTH"){if(window.breakpoints){if("BOTH"===t)window.breakpoints.delete(`${e}_IN`),window.breakpoints.delete(`${e}_OUT`),window.breakpoints.delete(`${e}_BOTH`);else{let n=`${e}_${t}`;window.breakpoints.delete(n)}}},status(){let e=window.wsConnected&&n.connection&&n.connection.transport&&n.connection.transport.ws;return console.log("WebSocket Status:",e?"CONNECTED":"DISCONNECTED"),e&&(console.log("Room ID:",n.id),console.log("Session ID:",n.sessionId)),e},reconnect(){let e=document.querySelector("#app")||document.body,t=Object.keys(e).find(e=>e.startsWith("__react")),o=null;if(t&&function e(t,n=0){if(!(!t||n>25||o)){try{if(t.memoizedState){let i=t.memoizedState,s=0;for(;i&&s<20&&!o;){let a=i.memoizedState;if(a&&void 0!==a.hasJoined&&a.send&&a.onStateChange)return void(o=a);i=i.next,s++}}}catch{}e(t.child,n+1),e(t.sibling,n+1)}}(e[t]),!o)return;if(n=o,window.colyseusRoom=n,n.connection&&n.connection.transport&&n.connection.transport.ws){let i=n.connection.transport.ws,s=i.onmessage,a=i.onclose,r=i.onerror;i.onmessage=function(e){if(window.monitorEnabled)try{Date.now()}catch(t){}return s.call(this,e)},i.onclose=function(e){window.wsConnected=!1,a&&a.call(this,e)},i.onerror=function(e){window.wsConnected=!1,r&&r.call(this,e)}}let l=n.onMessage.bind(n),c=new Map;n.onMessage=function(e,t){let n=function(...n){let o="*"===e?n[0]:e,i="*"===e?n[1]:n[0],s=window.eventListeners.get(o);s&&s.length>0&&s.forEach(e=>{try{e(i,o)}catch(t){}});let a=window.interceptRules.get(o);if(a&&a.enabled&&"IN"===a.direction){if("DROP"===a.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===a.action)try{let r=a.transform(i);window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:r,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:i});let l=[...n];return 1===l.length?l[0]=r:2===l.length&&(l[1]=r),t(...l)}catch(c){}}if(!window.interceptEnabled||!window.interceptIncoming)return window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random()}),t(...n);{let d={direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),originalArgs:n,originalCallback:t,status:"pending"};window.interceptQueue.push(d)}};return c.set(e,n),d.set(e,t),l(e,n)};let p=n.send.bind(n);n.send=function(e,t){let n=window.interceptRules.get(e);if(n&&n.enabled&&"OUT"===n.direction){if("DROP"===n.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===n.action)try{let o=n.transform(t);return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:o,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:t}),p(e,o)}catch(i){}}if(!window.interceptEnabled||!window.interceptOutgoing)return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random()}),p(e,t);{let s={direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),originalType:e,originalData:JSON.parse(JSON.stringify(t)),status:"pending"};window.interceptQueue.push(s)}},m=p,window.wsConnected=!0,window.hook.room=n},intercept:{add(e,t,n="OUT"){"function"==typeof t&&["IN","OUT","BOTH"].includes(n)&&("BOTH"===n?(window.interceptRules.set(e+"_IN",{messageType:e,transform:t,direction:"IN",enabled:!0,action:"TRANSFORM"}),window.interceptRules.set(e+"_OUT",{messageType:e,transform:t,direction:"OUT",enabled:!0,action:"TRANSFORM"})):window.interceptRules.set(e,{messageType:e,transform:t,direction:n,enabled:!0,action:"TRANSFORM"}))},replace(e,t,n,o="OUT"){this.add(e,e=>"object"==typeof e&&null!==e?{...e,[t]:n}:e,o)},drop(e,t="OUT"){["IN","OUT","BOTH"].includes(t)&&("BOTH"===t?(window.interceptRules.set(e+"_IN",{messageType:e,direction:"IN",enabled:!0,action:"DROP"}),window.interceptRules.set(e+"_OUT",{messageType:e,direction:"OUT",enabled:!0,action:"DROP"})):window.interceptRules.set(e,{messageType:e,direction:t,enabled:!0,action:"DROP"}))},remove(e,t=null){"BOTH"===t||null===t?(window.interceptRules.delete(e),window.interceptRules.delete(e+"_IN"),window.interceptRules.delete(e+"_OUT")):window.interceptRules.delete(e)},list(){0!==window.interceptRules.size?(console.log("\n=== Active Intercept Rules ==="),window.interceptRules.forEach((e,t)=>{let n=e.enabled?"✓":"✗",o=e.action||"TRANSFORM";console.log(`${n} ${e.messageType} [${e.direction}] - ${o}`)}),console.log(`Total: ${window.interceptRules.size} rules`)):console.log("No active intercept rules")},enableRule(e){let t=window.interceptRules.get(e);t&&(t.enabled=!0)},disableRule(e){let t=window.interceptRules.get(e);t&&(t.enabled=!1)},clearRules(){window.interceptRules.clear()},enable(){window.interceptEnabled=!0},disable(){window.interceptEnabled=!1},toggle(){window.interceptEnabled=!window.interceptEnabled},incoming(e){window.interceptIncoming=e},outgoing(e){window.interceptOutgoing=e},queue:()=>window.interceptQueue,clear(){window.interceptQueue=[]},forward(e,t=!1){let n=window.interceptQueue[e];if(n&&"pending"===n.status){if(n.status="forwarded","OUT"===n.direction)m(n.type,n.message);else if(n.originalCallback&&n.originalArgs)try{let o=[...n.originalArgs];1===o.length?o[0]=n.message:2===o.length&&(o[1]=n.message),n.originalCallback(...o)}catch(i){}window.monitorEnabled&&window.messageFlow.push({direction:n.direction,type:n.type,message:n.message,timestamp:Date.now(),id:Date.now()+Math.random(),modified:t}),window.interceptQueue.splice(e,1)}},drop(e){let t=window.interceptQueue[e];t&&"pending"===t.status&&(t.status="dropped",window.interceptQueue.splice(e,1))}},monitor:{on(){window.monitorEnabled=!0},off(){window.monitorEnabled=!1},toggle(){window.monitorEnabled=!window.monitorEnabled},status(){console.log("Monitor:",window.monitorEnabled?"ON":"OFF"),console.log("Captured messages:",window.messageFlow.length)},show(e=20){console.log(`Last ${e} messages:`);let t=window.messageFlow.slice(-e);t.forEach((e,n)=>{let o="IN"===e.direction?"IN ":"OUT",i=window.messageFlow.length-t.length+n,s=e.autoTransformed?" [TRANSFORMED]":"",a=e.dropped?" [DROPPED]":"";console.log(`[${i}] ${o} ${e.type}${s}${a}`,e.message)})},clear(){window.messageFlow=[]},search(e){let t=window.messageFlow.filter(t=>JSON.stringify(t).toLowerCase().includes(e.toLowerCase()));0!==t.length?(console.log(`Found ${t.length} matching messages:`),t.forEach((e,t)=>{let n="IN"===e.direction?"IN ":"OUT";console.log(`[${t}] ${n} ${e.type}`,e.message)})):console.log("No matching messages found.")},analyze(){let e={};window.messageFlow.forEach(t=>{let n=`${t.direction}:${t.type}`;e[n]=(e[n]||0)+1}),console.log("\nMessage statistics:"),Object.entries(e).sort((e,t)=>t[1]-e[1]).forEach(([e,t])=>{console.log(`  ${e}: ${t}`)}),console.log("\nTotal messages:",window.messageFlow.length)},export(){let e=JSON.stringify(window.messageFlow,null,2);return navigator.clipboard.writeText(e),e}}})})();
+// ==UserScript==
+// @name         X-GUI CLIENT FOR BLOOKET
+// @namespace    http://tampermonkey.net/
+// @version      7.1.0
+// @description  NOT PATCHED ANYMORE, THE BEST GUI ON THE WEB! ADVANCED ANTIBAN AND TONS OF FEATURES {CHEAT} {HACK} {CLIENT}
+// @author       XullysFN
+// @run-at       document-end
+// @match        *://*.blooket.com/*
+// @match        *://blooket.com/*
+// @license      APGL-3.0
+// @icon         https://i.ibb.co/LhDtzNd1/icon512.png
+// @downloadURL https://gitlab.com/CidCaribou/x-gui/-/raw/main/x-gui.user.js?ref_type=heads
+// @updateURL   https://gitlab.com/CidCaribou/x-gui/-/raw/main/x-gui.user.js?ref_type=heads
+// @grant       GM_getResourceText
+// @grant       GM_addStyle
+// @grant       unsafeWindow
+// @require     https://cdn.jsdelivr.net/npm/sweetalert2@11
+// ==/UserScript==
 
+var window = unsafeWindow; 
+
+/**
+* Hook.js Lite
+* Version: 1.5 Lite
+* Original Author: Landsedge
+* Contributors: redhorse26, juro50000
+*/
+(async()=>{let e=document.querySelector("#app")||document.body,t=Object.keys(e).find(e=>e.startsWith("__react")),n=null,o=null;if(t&&function e(t,o=0){if(!(!t||o>25||n)){try{if(t.memoizedState){let i=t.memoizedState,s=0;for(;i&&s<20&&!n;){let a=i.memoizedState;if(a&&void 0!==a.hasJoined&&a.send&&a.onStateChange)return void(n=a);i=i.next,s++}}}catch{}e(t.child,o+1),e(t.sibling,o+1)}}(e[t]),!n)return;if(window.messageFlow=[],window.monitorEnabled=!0,window.interceptEnabled=!1,window.interceptQueue=[],window.interceptIncoming=!1,window.interceptOutgoing=!1,window.repeaterMessages=[],window.interceptRules=new Map,window.eventListeners=new Map,window.wsConnected=!0,n.connection&&n.connection.transport&&n.connection.transport.ws){let i=n.connection.transport.ws,s=i.onmessage,a=i.onclose,r=i.onerror;i.onmessage=function(e){if(window.monitorEnabled)try{Date.now()}catch(t){}return s.call(this,e)},i.onclose=function(e){window.wsConnected=!1,a&&a.call(this,e)},i.onerror=function(e){window.wsConnected=!1,r&&r.call(this,e)}}let l=n.onMessage.bind(n),c=new Map,d=new Map;n.onMessage=function(e,t){let n=function(...n){let o="*"===e?n[0]:e,i="*"===e?n[1]:n[0];if(window.breakpoints){let s=e=>{let t=`${o}_${e}`,n=window.breakpoints.get(t);if(n&&n.enabled){n.hitCount++;try{n.callback(i,o,e)}catch(s){}}};s("IN"),s("BOTH")}let a=window.eventListeners.get(o);a&&a.length>0&&a.forEach(e=>{try{e(i,o)}catch(t){}});let r=window.interceptRules.get(o);if(r&&r.enabled&&"IN"===r.direction){if("DROP"===r.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===r.action)try{let l=r.transform(i);window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:l,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:i});let c=[...n];return 1===c.length?c[0]=l:2===c.length&&(c[1]=l),t(...c)}catch(d){}}if(!window.interceptEnabled||!window.interceptIncoming)return window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random()}),t(...n);{let m={direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),originalArgs:n,originalCallback:t,status:"pending"};window.interceptQueue.push(m)}};return c.set(e,n),d.set(e,t),l(e,n)};var m=n.send.bind(n);n.send=function(e,t){if(window.breakpoints){let n=n=>{let o=`${e}_${n}`,i=window.breakpoints.get(o);if(i&&i.enabled){i.hitCount++;try{i.callback(t,e,n)}catch(s){}}};n("OUT"),n("BOTH")}let o=window.interceptRules.get(e);if(o&&o.enabled&&"OUT"===o.direction){if("DROP"===o.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===o.action)try{let i=o.transform(t);return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:t}),m(e,i)}catch(s){}}if(!window.interceptEnabled||!window.interceptOutgoing)return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random()}),m(e,t);{let a={direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),originalType:e,originalData:JSON.parse(JSON.stringify(t)),status:"pending"};window.interceptQueue.push(a)}};let p=window.location.href.includes("/host");if(p)o={name:"Host"};else{n.state&&n.state.players||await new Promise(e=>{let t=setInterval(()=>{n.state&&n.state.players&&(clearInterval(t),e())},100)});let g=n.state.players;o=Array.from(g.values())[0]}o&&(window.colyseusRoom=n,window.me=o,window.myPlayer=o,window.colyseus={room:n,state:n.state,connection:n.connection,sessionId:n.sessionId,id:n.id,name:n.name,players:n.state?.players,getRoomData:()=>({sessionId:n.sessionId,id:n.id,name:n.name,hasJoined:n.hasJoined}),getAllPlayers:()=>n.state?.players?Array.from(n.state.players.entries()).map(([e,t])=>({id:e,name:t.name,player:t})):[]},window.hook={room:n,me:o,inspect(){console.log("Room:",n),console.log("Player:",o),console.log("Colyseus:",window.colyseus)},sendMessage(e,t={},o="OUT"){if(n){if("OUT"===o)return n.send(e,t);if("IN"===o){let i=d.get(e)||d.get("*");i&&(i(t),window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),simulated:!0}))}}},listen(e,t,n="BOTH"){if("function"!=typeof t||!["IN","OUT","BOTH"].includes(n))return;window.breakpoints||(window.breakpoints=new Map);let o=`${e}_${n}`;window.breakpoints.set(o,{messageType:e,callback:t,direction:n,enabled:!0,hitCount:0})},unlisten(e,t="BOTH"){if(window.breakpoints){if("BOTH"===t)window.breakpoints.delete(`${e}_IN`),window.breakpoints.delete(`${e}_OUT`),window.breakpoints.delete(`${e}_BOTH`);else{let n=`${e}_${t}`;window.breakpoints.delete(n)}}},status(){let e=window.wsConnected&&n.connection&&n.connection.transport&&n.connection.transport.ws;return console.log("WebSocket Status:",e?"CONNECTED":"DISCONNECTED"),e&&(console.log("Room ID:",n.id),console.log("Session ID:",n.sessionId)),e},reconnect(){let e=document.querySelector("#app")||document.body,t=Object.keys(e).find(e=>e.startsWith("__react")),o=null;if(t&&function e(t,n=0){if(!(!t||n>25||o)){try{if(t.memoizedState){let i=t.memoizedState,s=0;for(;i&&s<20&&!o;){let a=i.memoizedState;if(a&&void 0!==a.hasJoined&&a.send&&a.onStateChange)return void(o=a);i=i.next,s++}}}catch{}e(t.child,n+1),e(t.sibling,n+1)}}(e[t]),!o)return;if(n=o,window.colyseusRoom=n,n.connection&&n.connection.transport&&n.connection.transport.ws){let i=n.connection.transport.ws,s=i.onmessage,a=i.onclose,r=i.onerror;i.onmessage=function(e){if(window.monitorEnabled)try{Date.now()}catch(t){}return s.call(this,e)},i.onclose=function(e){window.wsConnected=!1,a&&a.call(this,e)},i.onerror=function(e){window.wsConnected=!1,r&&r.call(this,e)}}let l=n.onMessage.bind(n),c=new Map;n.onMessage=function(e,t){let n=function(...n){let o="*"===e?n[0]:e,i="*"===e?n[1]:n[0],s=window.eventListeners.get(o);s&&s.length>0&&s.forEach(e=>{try{e(i,o)}catch(t){}});let a=window.interceptRules.get(o);if(a&&a.enabled&&"IN"===a.direction){if("DROP"===a.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===a.action)try{let r=a.transform(i);window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:r,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:i});let l=[...n];return 1===l.length?l[0]=r:2===l.length&&(l[1]=r),t(...l)}catch(c){}}if(!window.interceptEnabled||!window.interceptIncoming)return window.monitorEnabled&&window.messageFlow.push({direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random()}),t(...n);{let d={direction:"IN",type:o,message:i,timestamp:Date.now(),id:Date.now()+Math.random(),originalArgs:n,originalCallback:t,status:"pending"};window.interceptQueue.push(d)}};return c.set(e,n),d.set(e,t),l(e,n)};let p=n.send.bind(n);n.send=function(e,t){let n=window.interceptRules.get(e);if(n&&n.enabled&&"OUT"===n.direction){if("DROP"===n.action)return void(window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),dropped:!0}));if("TRANSFORM"===n.action)try{let o=n.transform(t);return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:o,timestamp:Date.now(),id:Date.now()+Math.random(),autoTransformed:!0,original:t}),p(e,o)}catch(i){}}if(!window.interceptEnabled||!window.interceptOutgoing)return window.monitorEnabled&&window.messageFlow.push({direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random()}),p(e,t);{let s={direction:"OUT",type:e,message:t,timestamp:Date.now(),id:Date.now()+Math.random(),originalType:e,originalData:JSON.parse(JSON.stringify(t)),status:"pending"};window.interceptQueue.push(s)}},m=p,window.wsConnected=!0,window.hook.room=n},intercept:{add(e,t,n="OUT"){"function"==typeof t&&["IN","OUT","BOTH"].includes(n)&&("BOTH"===n?(window.interceptRules.set(e+"_IN",{messageType:e,transform:t,direction:"IN",enabled:!0,action:"TRANSFORM"}),window.interceptRules.set(e+"_OUT",{messageType:e,transform:t,direction:"OUT",enabled:!0,action:"TRANSFORM"})):window.interceptRules.set(e,{messageType:e,transform:t,direction:n,enabled:!0,action:"TRANSFORM"}))},replace(e,t,n,o="OUT"){this.add(e,e=>"object"==typeof e&&null!==e?{...e,[t]:n}:e,o)},drop(e,t="OUT"){["IN","OUT","BOTH"].includes(t)&&("BOTH"===t?(window.interceptRules.set(e+"_IN",{messageType:e,direction:"IN",enabled:!0,action:"DROP"}),window.interceptRules.set(e+"_OUT",{messageType:e,direction:"OUT",enabled:!0,action:"DROP"})):window.interceptRules.set(e,{messageType:e,direction:t,enabled:!0,action:"DROP"}))},remove(e,t=null){"BOTH"===t||null===t?(window.interceptRules.delete(e),window.interceptRules.delete(e+"_IN"),window.interceptRules.delete(e+"_OUT")):window.interceptRules.delete(e)},list(){0!==window.interceptRules.size?(console.log("\n=== Active Intercept Rules ==="),window.interceptRules.forEach((e,t)=>{let n=e.enabled?"✓":"✗",o=e.action||"TRANSFORM";console.log(`${n} ${e.messageType} [${e.direction}] - ${o}`)}),console.log(`Total: ${window.interceptRules.size} rules`)):console.log("No active intercept rules")},enableRule(e){let t=window.interceptRules.get(e);t&&(t.enabled=!0)},disableRule(e){let t=window.interceptRules.get(e);t&&(t.enabled=!1)},clearRules(){window.interceptRules.clear()},enable(){window.interceptEnabled=!0},disable(){window.interceptEnabled=!1},toggle(){window.interceptEnabled=!window.interceptEnabled},incoming(e){window.interceptIncoming=e},outgoing(e){window.interceptOutgoing=e},queue:()=>window.interceptQueue,clear(){window.interceptQueue=[]},forward(e,t=!1){let n=window.interceptQueue[e];if(n&&"pending"===n.status){if(n.status="forwarded","OUT"===n.direction)m(n.type,n.message);else if(n.originalCallback&&n.originalArgs)try{let o=[...n.originalArgs];1===o.length?o[0]=n.message:2===o.length&&(o[1]=n.message),n.originalCallback(...o)}catch(i){}window.monitorEnabled&&window.messageFlow.push({direction:n.direction,type:n.type,message:n.message,timestamp:Date.now(),id:Date.now()+Math.random(),modified:t}),window.interceptQueue.splice(e,1)}},drop(e){let t=window.interceptQueue[e];t&&"pending"===t.status&&(t.status="dropped",window.interceptQueue.splice(e,1))}},monitor:{on(){window.monitorEnabled=!0},off(){window.monitorEnabled=!1},toggle(){window.monitorEnabled=!window.monitorEnabled},status(){console.log("Monitor:",window.monitorEnabled?"ON":"OFF"),console.log("Captured messages:",window.messageFlow.length)},show(e=20){console.log(`Last ${e} messages:`);let t=window.messageFlow.slice(-e);t.forEach((e,n)=>{let o="IN"===e.direction?"IN ":"OUT",i=window.messageFlow.length-t.length+n,s=e.autoTransformed?" [TRANSFORMED]":"",a=e.dropped?" [DROPPED]":"";console.log(`[${i}] ${o} ${e.type}${s}${a}`,e.message)})},clear(){window.messageFlow=[]},search(e){let t=window.messageFlow.filter(t=>JSON.stringify(t).toLowerCase().includes(e.toLowerCase()));0!==t.length?(console.log(`Found ${t.length} matching messages:`),t.forEach((e,t)=>{let n="IN"===e.direction?"IN ":"OUT";console.log(`[${t}] ${n} ${e.type}`,e.message)})):console.log("No matching messages found.")},analyze(){let e={};window.messageFlow.forEach(t=>{let n=`${t.direction}:${t.type}`;e[n]=(e[n]||0)+1}),console.log("\nMessage statistics:"),Object.entries(e).sort((e,t)=>t[1]-e[1]).forEach(([e,t])=>{console.log(`  ${e}: ${t}`)}),console.log("\nTotal messages:",window.messageFlow.length)},export(){let e=JSON.stringify(window.messageFlow,null,2);return navigator.clipboard.writeText(e),e}}})})();
+    
 /*!
 * sweetalert2 v11.26.17
 * Released under the MIT License.
@@ -40,12 +61,14 @@ console.log("%c gui.js", "color: #0bc2cf; font-size: 1rem");
 console.log("%c Join the discord! %c https://discord.gg/xKD4zVRH4F", "color: #ffd000; font-size: 1rem", "color: #8000ff; font-size: 1rem");
 
 (() => {
-    let iframe = document.querySelector("iframe");
-    if (!iframe) {
-        iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        document.body.append(iframe);
+    if (!window.iframe) {
+        window.iframe = document.createElement("iframe");
+        window.iframe.style.display = "none";
+        document.body.append(window.iframe);
     }
+
+    window.alert = (...args) => window.iframe.contentWindow.alert(...args);
+
     if (window.fetch.call.toString() == 'function call() { [native code] }') {
         const call = window.fetch.call;
         window.fetch.call = function() {
@@ -55,7 +78,7 @@ console.log("%c Join the discord! %c https://discord.gg/xKD4zVRH4F", "color: #ff
     const timeProcessed = 1747005941679;
     let latestProcess = -1;
     const cheat = (async () => {
-        const versionName = "7x";
+        const versionName = "7.1.0x";
         const gui = document.createElement("div");
         Object.assign(gui.style, {
             top: window.innerHeight / 2 - 250 + "px",
@@ -72,7 +95,7 @@ console.log("%c Join the discord! %c https://discord.gg/xKD4zVRH4F", "color: #ff
             "--toggleOn": "#5FA3FF",
         };
         let settings,
-            settingsKey = "KGUI.BenIsASillyGoose";
+            settingsKey = "XGUI.BenIsASillyGoose";
         const Settings = {
             data: null,
             setItem(k, v) {
@@ -530,7 +553,10 @@ button,
         leaderboardPage.className = classes.leaderboardPage;
         const leaderboardList = document.createElement("ul");
         leaderboardList.className = classes.noScroll + " " + classes.leaderboardList;
-        leaderboardPage.append(leaderboardList);
+        const noLeaderboard = document.createElement("span");
+        noLeaderboard.className = classes.noResult;
+        noLeaderboard.innerText = "No leaderboard data. Join a game to see standings.";
+        leaderboardPage.append(noLeaderboard, leaderboardList);
         const logsPage = document.createElement("div");
         logsPage.className = classes.logsPage;
         const logMessages = document.createElement("ul");
@@ -539,7 +565,6 @@ button,
         clearLogsButton.className = classes.clearLogsButton;
         clearLogsButton.innerHTML = `<i class="fas fa-ban" style="line-height: 1"></i>`;
         logsPage.append(logMessages, clearLogsButton);
-        let leaderboardPath;
         const Logs = {
             connection: null,
             standings: [],
@@ -650,25 +675,129 @@ button,
                 return num + " \xd7 10" + exp.split("").reduce((a, b) => a + Logs.exponents[b], "");
             },
             leaderboardCache: {},
+            colyseusInterval: null,
+            firebaseInterval: null,
+            selectedStanding: null,
+            getLiveGameController() {
+                let stateNode;
+                try {
+                    stateNode = getStateNode();
+                } catch (error) {
+                    void error;
+                }
+                if (stateNode?.props?.liveGameController) return stateNode.props.liveGameController;
+                try {
+                    const node = Object.values(document.querySelector("#app > div > div"))[1]?.children?.[0]?._owner?.stateNode;
+                    if (node?.props?.liveGameController) return node.props.liveGameController;
+                } catch (error) {
+                    void error;
+                }
+                return null;
+            },
+            getBlookFallbackUrl(blookName) {
+                const normalizedName = String(blookName || "Black")
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "");
+                if (!normalizedName) return "https://ac.blooket.com/marketassets/blooks/black.svg";
+                return `https://ac.blooket.com/marketassets/blooks/${normalizedName}.svg`;
+            },
             createStandingElement(name) {
                 const element = document.createElement("li");
                 element.className = classes.standing;
-                element.innerText = name;
                 const blook = document.createElement("img");
                 blook.className = classes.standingBlook;
-                element.prepend(blook);
+                const info = document.createElement("div");
+                info.style.flex = "1";
+                info.style.minWidth = "0";
+                info.style.display = "flex";
+                info.style.flexDirection = "column";
+                const standingName = document.createElement("div");
+                standingName.style.whiteSpace = "nowrap";
+                standingName.style.overflow = "hidden";
+                standingName.style.textOverflow = "ellipsis";
+                const standingDetails = document.createElement("div");
+                standingDetails.style.fontSize = ".5em";
+                standingDetails.style.opacity = ".8";
+                standingDetails.style.fontWeight = "400";
+                standingDetails.style.whiteSpace = "nowrap";
+                standingDetails.style.overflow = "hidden";
+                standingDetails.style.textOverflow = "ellipsis";
+                info.append(standingName, standingDetails);
+                element.append(blook, info);
+                element._nameEl = standingName;
+                element._detailsEl = standingDetails;
+                element.style.cursor = "pointer";
+                element.onclick = () => {
+                    Logs.selectedStanding = Logs.selectedStanding === name ? null : name;
+                    Logs.setLeaderboard(Logs.standings || []);
+                };
                 return (Logs.leaderboardCache[name] = element);
             },
+            stringifyPlayerData(data) {
+                if (!data || typeof data !== "object") return "";
+                return Object.entries(data)
+                    .map(([key, value]) => {
+                        if (typeof value === "object" && value !== null) {
+                            try {
+                                value = JSON.stringify(value);
+                            } catch {
+                                value = "[Object]";
+                            }
+                        }
+                        return `${key}: ${value}`;
+                    })
+                    .join(" | ");
+            },
+            extractPlayerData(player) {
+                if (!player || typeof player !== "object") return {};
+                const normalized = {};
+                for (const key in player) {
+                    try {
+                        const value = player[key];
+                        if (typeof value === "function" || typeof value === "symbol" || value === undefined) continue;
+                        if (typeof value === "object" && value !== null) {
+                            try {
+                                normalized[key] = JSON.parse(JSON.stringify(value));
+                            } catch {
+                                normalized[key] = "[Object]";
+                            }
+                        } else normalized[key] = value;
+                    } catch {}
+                }
+                return normalized;
+            },
             setLeaderboard(standings) {
-                if (standings.length > 0) leaderboardPath.style.display = "flex";
+                noLeaderboard.style.display = standings.length > 0 ? "none" : "block";
                 leaderboardList.innerHTML = "";
+                Logs.standings = standings;
+                if (Logs.selectedStanding && !standings.some((s) => s.name === Logs.selectedStanding)) Logs.selectedStanding = null;
                 let place = 1;
                 let blookInfo;
                 for (let i = 0; i < standings.length; i++) {
                     const standing = standings[i];
                     const standingEl = Logs.leaderboardCache[standing.name] || Logs.createStandingElement(standing.name);
-                    standingEl.firstChild.src = (blookInfo = Logs.blookData[Logs.data[standing.name]?.b || "Black"]).url;
+                    const blookName = standing.blookName || standing.blook || standing.extraData?.blook || standing.extraData?.b || Logs.data[standing.name]?.b || "Black";
+                    blookInfo = Logs.blookData?.[blookName] || Logs.blookData?.["Black"] || {
+                        url: Logs.getBlookFallbackUrl(blookName),
+                        color: "#888"
+                    };
+                    standingEl.firstChild.src = blookInfo.url || Logs.getBlookFallbackUrl(blookName);
+                    standingEl.firstChild.onerror = () => {
+                        if (standingEl.firstChild.src !== Logs.getBlookFallbackUrl("Black")) {
+                            standingEl.firstChild.src = Logs.getBlookFallbackUrl("Black");
+                            return;
+                        }
+                        standingEl.firstChild.onerror = null;
+                        standingEl.firstChild.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+                    };
+                    standingEl.firstChild.alt = `${blookName} blook`;
                     standingEl.style.setProperty("--standingColor", blookInfo.color);
+                    if (standingEl._nameEl) standingEl._nameEl.innerText = standing.name;
+                    const fullDetails = standing.detailsText || Logs.stringifyPlayerData(standing.extraData);
+                    const collapsedDetails = `Score: ${Logs.formatNumber(standing.value)}`;
+                    const isSelected = Logs.selectedStanding === standing.name;
+                    if (standingEl._detailsEl) standingEl._detailsEl.innerText = isSelected ? (fullDetails || "No extra player data") : collapsedDetails;
+                    standingEl.title = isSelected ? (fullDetails || standing.name) : `${standing.name} (click for full data)`;
                     standingEl.dataset[datasets.value] = Logs.formatNumber(standing.value);
                     if (standings[i - 1]?.value != standings[i].value) place = i + 1;
                     standingEl.dataset[datasets.place] = place;
@@ -703,112 +832,178 @@ button,
                     })
                 );
             },
+            connectColyseus() {
+                if (!window.colyseus) return false;
+                if (Logs.colyseusInterval) return true;
+                Logs.fetchBlooks().catch(() => {});
+                Logs.colyseusInterval = setInterval(() => {
+                    if (!window.colyseus) {
+                        clearInterval(Logs.colyseusInterval);
+                        Logs.colyseusInterval = null;
+                        return;
+                    }
+                    try {
+                        const players = window.colyseus.getAllPlayers();
+                        if (!players || players.length === 0) return;
+                        const standings = players
+                            .map(({
+                                name,
+                                player
+                            }) => {
+                                const playerData = Logs.extractPlayerData(player);
+                                return {
+                                    name: playerData?.name || name || "Unknown",
+                                    blookName: playerData?.blook || playerData?.b || "Black",
+                                    value: playerData?.tokens ?? playerData?.score ?? playerData?.points ?? 0,
+                                    extraData: playerData
+                                };
+                            })
+                            .sort((a, b) => b.value - a.value);
+                        Logs.setLeaderboard(standings);
+                    } catch (e) {
+                        console.warn("Colyseus leaderboard error:", e);
+                    }
+                }, 1000);
+                return true;
+            },
+            handleFirebasePlayers(players, gamemode) {
+                if (!players) players = {};
+                let added;
+                if (!(added = Logs.diffObjects(Logs.data, players))) return;
+                Logs.data = players;
+                if (Logs.gamemodeData[gamemode]?.sort) {
+                    Logs.standings = Object.entries(players)
+                        .map(([name, data]) => ({
+                            name,
+                            blook: data?.b,
+                            blookName: data?.b,
+                            value: data?.[Logs.gamemodeData[gamemode].sort] || 0,
+                            extraData: data || {}
+                        }))
+                        .sort((a, b) => b.value - a.value);
+                    Logs.setLeaderboard(Logs.standings);
+                }
+                try {
+                    let addedPlayer;
+                    switch (gamemode) {
+                        case "brawl":
+                            for (const player in added) {
+                                if (!(addedPlayer = added[player]).up) continue;
+                                const upgrade = addedPlayer.up.split(":");
+                                if (upgrade.length == 2 && upgrade[0] in Logs.gamemodeData.brawl.upgrades) Logs.addAlert(player, `upgraded ${Logs.gamemodeData.brawl.upgrades[upgrade[0]]} to level ${upgrade[1]}`);
+                            }
+                            break;
+                        case "gold":
+                            for (const player in added) {
+                                if (!(addedPlayer = added[player]).tat) continue;
+                                const [tat, amount] = addedPlayer.tat.split(":");
+                                if (amount == "swap") Logs.addAlert(player, `just swapped ${document.querySelector("[src*='assets/candy']") ? "candy" : "gold"} with ${tat}`);
+                                else Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} ${document.querySelector("[src*='assets/candy']") ? "candy" : "gold"} from ${tat}`);
+                            }
+                            break;
+                        case "toy":
+                            for (const player in added) {
+                                if ((addedPlayer = added[player]).s) Logs.addAlert(player, `sabotaged with "${Logs.gamemodeData.toy.sabotages[addedPlayer.s]}"`);
+                                else if (addedPlayer.tat) {
+                                    const [tat, amount] = addedPlayer.tat.split(":");
+                                    if (amount == "swap") Logs.addAlert(player, `just swapped toys with ${tat}`);
+                                    else Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} toy${amount == 1 ? "" : "s"} from ${tat}`);
+                                }
+                            }
+                            break;
+                        case "hack":
+                            for (const player in added) {
+                                if (!(addedPlayer = added[player]).tat) continue;
+                                const [tat, amount] = addedPlayer.tat.split(":");
+                                Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} crypto from ${tat}`);
+                            }
+                            break;
+                        case "pirate":
+                            for (const player in added) {
+                                if (!(addedPlayer = added[player]).tat) continue;
+                                const [tat, amount] = addedPlayer.tat.split(":");
+                                Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} doubloons from ${tat}`);
+                            }
+                            break;
+                        case "defense2":
+                            for (const player in added) {
+                                if (!(addedPlayer = added[player]).r) continue;
+                                Logs.addAlert(player, `just completed Round ${addedPlayer.r}!`);
+                            }
+                            break;
+                        case "fish":
+                            for (const player in added) {
+                                if ((addedPlayer = added[player]).f == "Frenzy") Logs.addAlert(player, `just started a frenzy`);
+                                else if (addedPlayer.s) Logs.addAlert(player, `just sent a ${addedPlayer.f} distraction`);
+                            }
+                            break;
+                        case "dino":
+                            for (const player in added) {
+                                if (!(addedPlayer = added[player]).tat) continue;
+                                const [tat, caught] = addedPlayer.tat.split(":");
+                                if (caught == "true") Logs.addAlert(player, `just caught ${tat} CHEATING!`);
+                                else Logs.addAlert(player, `investigated ${tat}`);
+                            }
+                            break;
+                        case "cafe":
+                            for (const player in added) {
+                                if (!(addedPlayer = added[player]).up) continue;
+                                const [upgrade, level] = addedPlayer.up.split(":");
+                                if (level) Logs.addAlert(player, `upgraded ${upgrade} to level ${level}`);
+                            }
+                            break;
+                        case "factory":
+                            for (const player in added) {
+                                if ((addedPlayer = added[player]).g) Logs.addAlert(player, `activated the ${Logs.gamemodeData.factory.glitches[addedPlayer.g]} glitch!`);
+                                else if (addedPlayer.s) {
+                                    const [amount, synergy] = addedPlayer.s.split("-");
+                                    Logs.addAlert(player, `has a ${amount} ${synergy} synergy!`);
+                                } else if (addedPlayer.t) Logs.addAlert(player, `now has 10 Blooks!`);
+                            }
+                            break;
+                    }
+                } catch (e) {
+                    console.error(e);
+                    Logs.addLog("Error adding an alert", "red");
+                }
+            },
             async connect() {
                 try {
-                    const stateNode = getStateNode();
-                    if (!stateNode?.props?.liveGameController?._liveGameCode) return false;
-                    Logs.connection = await stateNode.props.liveGameController.getDatabaseRef("c");
-                    if (!Logs.connection) return false;
+                    if (window.colyseus) {
+                        if (Logs.firebaseInterval) {
+                            clearInterval(Logs.firebaseInterval);
+                            Logs.firebaseInterval = null;
+                        }
+                        return Logs.connectColyseus();
+                    }
+                    if (Logs.colyseusInterval) {
+                        clearInterval(Logs.colyseusInterval);
+                        Logs.colyseusInterval = null;
+                    }
+                    const liveGameController = Logs.getLiveGameController();
+                    if (!liveGameController) return false;
                     await Logs.fetchBlooks();
                     const gamemode = Logs.getGamemode();
-                    Logs.connection.on("value", (snapshot) => {
-                        const players = snapshot.val() || {};
-                        let added;
-                        if (!players || !(added = Logs.diffObjects(Logs.data, players))) return;
-                        Logs.data = players;
-                        if (Logs.gamemodeData[gamemode].sort) {
-                            Logs.standings = Object.entries(players)
-                                .map(([name, data]) => ({
-                                    name,
-                                    blook: data.b,
-                                    value: data[Logs.gamemodeData[gamemode].sort] || 0
-                                }))
-                                .sort((a, b) => b.value - a.value);
-                            Logs.setLeaderboard(Logs.standings);
-                        }
-                        try {
-                            let addedPlayer;
-                            switch (gamemode) {
-                                case "brawl":
-                                    for (const player in added) {
-                                        if (!(addedPlayer = added[player]).up) continue;
-                                        const upgrade = addedPlayer.up.split(":");
-                                        if (upgrade.length == 2 && upgrade[0] in Logs.gamemodeData.brawl.upgrades) Logs.addAlert(player, `upgraded ${Logs.gamemodeData.brawl.upgrades[upgrade[0]]} to level ${upgrade[1]}`);
-                                    }
-                                    break;
-                                case "gold":
-                                    for (const player in added) {
-                                        if (!(addedPlayer = added[player]).tat) continue;
-                                        const [tat, amount] = addedPlayer.tat.split(":");
-                                        if (amount == "swap") Logs.addAlert(player, `just swapped ${document.querySelector("[src*='assets/candy']") ? "candy" : "gold"} with ${tat}`);
-                                        else Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} ${document.querySelector("[src*='assets/candy']") ? "candy" : "gold"} from ${tat}`);
-                                    }
-                                    break;
-                                case "toy":
-                                    for (const player in added) {
-                                        if ((addedPlayer = added[player]).s) Logs.addAlert(player, `sabotaged with "${Logs.gamemodeData.toy.sabotages[addedPlayer.s]}"`);
-                                        else if (addedPlayer.tat) {
-                                            const [tat, amount] = addedPlayer.tat.split(":");
-                                            if (amount == "swap") Logs.addAlert(player, `just swapped toys with ${tat}`);
-                                            else Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} toy${amount == 1 ? "" : "s"} from ${tat}`);
-                                        }
-                                    }
-                                    break;
-                                case "hack":
-                                    for (const player in added) {
-                                        if (!(addedPlayer = added[player]).tat) continue;
-                                        const [tat, amount] = addedPlayer.tat.split(":");
-                                        Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} crypto from ${tat}`);
-                                    }
-                                    break;
-                                case "pirate":
-                                    for (const player in added) {
-                                        if (!(addedPlayer = added[player]).tat) continue;
-                                        const [tat, amount] = addedPlayer.tat.split(":");
-                                        Logs.addAlert(player, `just took ${Logs.formatNumber(parseInt(amount))} doubloons from ${tat}`);
-                                    }
-                                    break;
-                                case "defense2":
-                                    for (const player in added) {
-                                        if (!(addedPlayer = added[player]).r) continue;
-                                        Logs.addAlert(player, `just completed Round ${addedPlayer.r}!`);
-                                    }
-                                    break;
-                                case "fishing":
-                                    for (const player in added) {
-                                        if ((addedPlayer = added[player]).f == "Frenzy") Logs.addAlert(player, `just started a frenzy`);
-                                        else if (addedPlayer.s) Logs.addAlert(player, `just sent a ${addedPlayer.f} distraction`);
-                                    }
-                                    break;
-                                case "dino":
-                                    for (const player in added) {
-                                        if (!(addedPlayer = added[player]).tat) continue;
-                                        const [tat, caught] = addedPlayer.tat.split(":");
-                                        if (caught == "true") Logs.addAlert(player, `just caught ${tat} CHEATING!`);
-                                        else Logs.addAlert(player, `investigated ${tat}`);
-                                    }
-                                    break;
-                                case "cafe":
-                                    for (const player in added) {
-                                        if (!(addedPlayer = added[player]).up) continue;
-                                        const [upgrade, level] = addedPlayer.up.split(":");
-                                        if (level) Logs.addAlert(player, `upgraded ${upgrade} to level ${level}`);
-                                    }
-                                    break;
-                                case "factory":
-                                    for (const player in added) {
-                                        if ((addedPlayer = added[player]).g) Logs.addAlert(player, `activated the ${Logs.gamemodeData.factory.glitches[addedPlayer.g]} glitch!`);
-                                        else if (addedPlayer.s) {
-                                            const [amount, synergy] = addedPlayer.s.split("-");
-                                            Logs.addAlert(player, `has a ${amount} ${synergy} synergy!`);
-                                        } else if (addedPlayer.t) Logs.addAlert(player, `now has 10 Blooks!`);
-                                    }
-                                    break;
+                    if (gamemode === "hack" || gamemode === "gold" || gamemode === "fish") {
+                        if (Logs.firebaseInterval) return true;
+                        Logs.firebaseInterval = setInterval(() => {
+                            try {
+                                liveGameController.getDatabaseVal("c", (players) => {
+                                    Logs.handleFirebasePlayers(players || {}, gamemode);
+                                });
+                            } catch (e) {
+                                console.warn("Firebase leaderboard poll error:", e);
                             }
-                        } catch (e) {
-                            console.error(e);
-                            Logs.addLog("Error adding an alert", "red");
-                        }
+                        }, 1000);
+                        liveGameController.getDatabaseVal("c", (players) => {
+                            Logs.handleFirebasePlayers(players || {}, gamemode);
+                        });
+                        return true;
+                    }
+                    Logs.connection = await liveGameController.getDatabaseRef("c");
+                    if (!Logs.connection) return false;
+                    Logs.connection.on("value", (snapshot) => {
+                        Logs.handleFirebasePlayers(snapshot.val() || {}, gamemode);
                     });
                     return true;
                 } catch (e) {
@@ -832,7 +1027,13 @@ button,
             },
             getGamemode() {
                 const gamemode = getStateNode().props?.client?.type;
-                if (typeof gamemode == "string") return gamemode.toLowerCase();
+                if (typeof gamemode == "string") {
+                    const normalized = gamemode.toLowerCase();
+                    if (normalized == "fishing") return "fish";
+                    if (normalized == "goldquest") return "gold";
+                    if (normalized == "cryptohack") return "hack";
+                    return normalized;
+                }
                 switch (window.location.pathname) {
                     case "/play/gold":
                     case "/play/gold/final":
@@ -1727,6 +1928,63 @@ button,
                                 icon: "success",
                                 title: "Theme Changed",
                                 text: `Successfully changed to ${selectedTheme} theme!`
+                            });
+                        }
+                    },
+                    {
+                        name: "Unlock All Blook Parts",
+                        description: "Unlocks every clothing, hat, hair, eyes, glasses, item, mouth, nose, cheeks, and eyebrows part in the blook editor",
+                        run: function() {
+                            if (!window.location.href.startsWith("https://dashboard.blooket.com/stats")) {
+                                return alert("You must be in the blook editor on dashboard.blooket.com/stats for this to work.");
+                            }
+
+                            const el = document.querySelector("#app > div > div > div:nth-child(9)");
+                            if (!el) {
+                                return alert("You must have the blook editor open for this to work.");
+                            }
+
+                            const fk = Object.keys(el).find(k =>
+                                k.startsWith("__reactFiber") || k.startsWith("__reactInternalInstance")
+                            );
+                            if (!fk) {
+                                return alert("You must have the blook editor open for this to work.");
+                            }
+
+                            let fiber = el[fk];
+                            let instance = null;
+                            while (fiber) {
+                                if (fiber.stateNode?.setState && fiber.stateNode?.state && "unlocks" in fiber.stateNode.state) {
+                                    instance = fiber.stateNode;
+                                    break;
+                                }
+                                fiber = fiber.return;
+                            }
+
+                            if (!instance) {
+                                return alert("You must have the blook editor open for this to work.");
+                            }
+
+                            const ALL = Array.from({
+                                length: 10000
+                            }, (_, i) => i);
+
+                            instance.setState(prev => ({
+                                ...prev,
+                                unlocks: {
+                                    clothing: ALL,
+                                    eyes: ALL,
+                                    glasses: ALL,
+                                    hair: ALL,
+                                    hat: ALL,
+                                    item: ALL,
+                                    mouth: ALL,
+                                    nose: ALL,
+                                    cheeks: ALL,
+                                    eyebrows: ALL,
+                                }
+                            }), () => {
+                                alert("All blook parts have been unlocked.");
                             });
                         }
                     },
@@ -4230,6 +4488,7 @@ button,
                                         }), o++, await new Promise(e => setTimeout(e, 4e3));
                                 alert(`Reset ${o} players' gold!`)
                             })
+
                         }
                     }, {
                         name: "Send Ad Text",
@@ -4319,6 +4578,86 @@ button,
                                 });
                             });
                         },
+                    },
+                    {
+                        name: "Gold Lock",
+                        description: "Prevents your gold from decreasing and hides swap/attack screens",
+                        type: "toggle",
+                        enabled: false,
+                        data: null,
+                        run: function() {
+                            let stateNode = getStateNode();
+                            if (!this.enabled) {
+                                this.enabled = true;
+                                let lastGold = stateNode.state?.gold || 0;
+                                const hideInterval = setInterval(() => {
+                                    const modal = document.querySelector('[class*="modal"], [class*="popup"], [class*="overlay"], [class*="notification"], [class*="alert"], [class*="swap"], [class*="tat"]');
+                                    if (modal && modal.style.display !== "none" && modal.style.display !== "hidden") {
+                                        modal.style.display = "none";
+                                        modal.style.visibility = "hidden";
+                                        modal.remove();
+                                    }
+                                    const swapContainers = document.querySelectorAll('[class*="swapContainer"], [class*="tatContainer"], [class*="attackContainer"]');
+                                    swapContainers.forEach(el => {
+                                        if (el) el.remove();
+                                    });
+                                }, 50);
+                                this.data = setInterval(() => {
+                                    const currentGold = stateNode.state?.gold || 0;
+                                    if (currentGold < lastGold) {
+                                        const lostAmount = lastGold - currentGold;
+                                        stateNode.props.liveGameController.setVal({
+                                            path: "c/" + stateNode.props.client.name + "/g",
+                                            val: lastGold
+                                        });
+                                        stateNode.setState({
+                                            gold: lastGold,
+                                            gold2: lastGold
+                                        });
+                                        if (typeof Swal !== "undefined") {
+                                            Swal.fire({
+                                                title: "Gold Protected",
+                                                text: `Blocked loss of ${lostAmount.toLocaleString()} gold`,
+                                                icon: "success",
+                                                toast: true,
+                                                position: "bottom-end",
+                                                timer: 2000,
+                                                timerProgressBar: true,
+                                                showConfirmButton: false,
+                                                background: "#151534",
+                                                color: "#ffffff"
+                                            });
+                                        }
+                                    } else {
+                                        lastGold = currentGold;
+                                    }
+                                }, 100);
+                                this.hideInterval = hideInterval;
+                            } else {
+                                this.enabled = false;
+                                if (this.data) {
+                                    clearInterval(this.data);
+                                    this.data = null;
+                                }
+                                if (this.hideInterval) {
+                                    clearInterval(this.hideInterval);
+                                    this.hideInterval = null;
+                                }
+                                if (typeof Swal !== "undefined") {
+                                    Swal.fire({
+                                        title: "Gold Lock Disabled",
+                                        text: "Your gold is no longer protected",
+                                        icon: "info",
+                                        toast: true,
+                                        position: "bottom-end",
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                        background: "#151534",
+                                        color: "#ffffff"
+                                    });
+                                }
+                            }
+                        }
                     },
                 ],
             },
@@ -4562,15 +4901,7 @@ button,
                             if (!location.href.includes("cryptohack")) {
                                 return alert("This panel works ONLY in Crypto Hack.");
                             }
-                            let node;
-                            try {
-                                node = Object.values(document.querySelector("#app > div > div"))[1]
-                                    .children[0]?._owner?.stateNode;
-                            } catch {
-                                return alert("Failed to read game data.");
-                            }
-                            if (!node) return alert("Could not get stateNode.");
-                            let lgc = node.props?.liveGameController;
+                            let lgc = Logs.getLiveGameController();
                             if (!lgc) return alert("No liveGameController found.");
                             const panel = document.createElement("div");
                             panel.style = `
@@ -4933,6 +5264,86 @@ button,
                                 }
                             });
                         },
+                    },
+                    {
+                        name: "Crypto Lock",
+                        description: "Prevents your crypto from decreasing and hides attack screens",
+                        type: "toggle",
+                        enabled: false,
+                        data: null,
+                        run: function() {
+                            let stateNode = getStateNode();
+                            if (!this.enabled) {
+                                this.enabled = true;
+                                let lastCrypto = stateNode.state?.crypto || 0;
+                                const hideInterval = setInterval(() => {
+                                    const modal = document.querySelector('[class*="modal"], [class*="popup"], [class*="overlay"], [class*="notification"], [class*="alert"], [class*="swap"], [class*="tat"]');
+                                    if (modal && modal.style.display !== "none" && modal.style.display !== "hidden") {
+                                        modal.style.display = "none";
+                                        modal.style.visibility = "hidden";
+                                        modal.remove();
+                                    }
+                                    const swapContainers = document.querySelectorAll('[class*="swapContainer"], [class*="tatContainer"], [class*="attackContainer"]');
+                                    swapContainers.forEach(el => {
+                                        if (el) el.remove();
+                                    });
+                                }, 50);
+                                this.data = setInterval(() => {
+                                    const currentCrypto = stateNode.state?.crypto || 0;
+                                    if (currentCrypto < lastCrypto) {
+                                        const lostAmount = lastCrypto - currentCrypto;
+                                        stateNode.props.liveGameController.setVal({
+                                            path: "c/" + stateNode.props.client.name + "/cr",
+                                            val: lastCrypto
+                                        });
+                                        stateNode.setState({
+                                            crypto: lastCrypto,
+                                            crypto2: lastCrypto
+                                        });
+                                        if (typeof Swal !== "undefined") {
+                                            Swal.fire({
+                                                title: "Crypto Protected",
+                                                text: `Blocked loss of ${lostAmount.toLocaleString()} crypto`,
+                                                icon: "success",
+                                                toast: true,
+                                                position: "bottom-end",
+                                                timer: 2000,
+                                                timerProgressBar: true,
+                                                showConfirmButton: false,
+                                                background: "#151534",
+                                                color: "#ffffff"
+                                            });
+                                        }
+                                    } else {
+                                        lastCrypto = currentCrypto;
+                                    }
+                                }, 100);
+                                this.hideInterval = hideInterval;
+                            } else {
+                                this.enabled = false;
+                                if (this.data) {
+                                    clearInterval(this.data);
+                                    this.data = null;
+                                }
+                                if (this.hideInterval) {
+                                    clearInterval(this.hideInterval);
+                                    this.hideInterval = null;
+                                }
+                                if (typeof Swal !== "undefined") {
+                                    Swal.fire({
+                                        title: "Crypto Lock Disabled",
+                                        text: "Your crypto is no longer protected",
+                                        icon: "info",
+                                        toast: true,
+                                        position: "bottom-end",
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                        background: "#151534",
+                                        color: "#ffffff"
+                                    });
+                                }
+                            }
+                        }
                     },
                 ],
             },
@@ -8577,6 +8988,7 @@ button,
             };
         }
         const versions = [
+            ["Version 7.1.0x", "Fixed the Custom Blook Editor so blooks now load correctly on the Play page. Updated the Blook Part List in the editor to include new items. Fixed the custom module issue where CSP was always detected. Corrected the position of CSP alerts in Custom Modules. Added Sweet Alerts to the Client Blook Editor. Fixed window.alert not working on certain pages. Added Gold Lock. Added Crypto Lock. Added Blooket Part Unlocker. Added a Leaderboard Tab and updated it for Colyseus.", "null"],
             ["Version 7x", "Redesigned alt manager, Updated Client Blooks UI, Improved changelog page, Cleaned up a lot of code, Added helpful quality-of-life features, Brought features from BCP into X-GUI, Added new modules, Settings now save globally, Removed glow and made the UI less rounded, and Updated info and credits", "null"],
             ["Version 6.70x", "ADDED SMOOTH GUI ANIMATIONS, FIXED CUSTOM MODULE BUGS, ALLOWED TEXT VALUES FOR STATS, FIXED CRYPTO STEALING, ADDED SPAM CRYPTO HACK, UPDATED ICONS, FIXED STORAGE SYNC, AND UPDATED CREDITS.", "null"],
             ["Version 6.69x", "ADDED CSP DETECTOR FOR CUSTOM MODULES, FIXED CUSTOM MODULES BUG, FIXED STORAGE ISSUE ADDED IMAGE FIX AND ADDED FREE PLUS!.", "null"],
@@ -9294,6 +9706,7 @@ button,
             if (e.key === "Enter") saveAltBtn.click();
         });
         altPage.onPath = renderAlts;
+
         const blookPage = document.createElement("div");
         blookPage.className = "blookPage";
         Object.assign(blookPage.style, {
@@ -9878,8 +10291,2356 @@ button,
 }
 `;
         document.head.appendChild(Blookstyle);
-        const PARTS_JSON_URL = "https://media.blooket.com/raw/upload/v1772990203/itbxptfior0l78rvmh0e.json";
-        let partsData = {};
+        let partsData = {
+            "base": [{
+                "id": 1,
+                "numInName": 0,
+                "url": "https://media.blooket.com/image/upload/v1634087683/BlookParts/base0.svg"
+            }, {
+                "id": 2,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087683/BlookParts/base1.svg"
+            }, {
+                "id": 3,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087683/BlookParts/base2.svg"
+            }, {
+                "id": 4,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087683/BlookParts/base3.svg"
+            }, {
+                "id": 5,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087694/BlookParts/base4.svg"
+            }, {
+                "id": 6,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087683/BlookParts/base5.svg"
+            }],
+            "clothing": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087712/BlookParts/clothing1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087707/BlookParts/clothing2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087720/BlookParts/clothing3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087741/BlookParts/clothing4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087741/BlookParts/clothing5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087744/BlookParts/clothing6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1634087725/BlookParts/clothing7.svg"
+            }, {
+                "id": 8,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1634087758/BlookParts/clothing8.svg"
+            }, {
+                "id": 9,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1634087769/BlookParts/clothing9.svg"
+            }, {
+                "id": 10,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1634087763/BlookParts/clothing10.svg"
+            }, {
+                "id": 11,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1634087807/BlookParts/clothing11.svg"
+            }, {
+                "id": 12,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1634087683/BlookParts/clothing12.svg"
+            }, {
+                "id": 13,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1664323225/BlookParts/clothing13.svg"
+            }, {
+                "id": 14,
+                "numInName": 14,
+                "url": "https://media.blooket.com/image/upload/v1664323226/BlookParts/clothing14.svg"
+            }, {
+                "id": 15,
+                "numInName": 15,
+                "url": "https://media.blooket.com/image/upload/v1664323225/BlookParts/clothing15.svg"
+            }, {
+                "id": 16,
+                "numInName": 16,
+                "url": "https://media.blooket.com/image/upload/v1664323227/BlookParts/clothing16.svg"
+            }, {
+                "id": 17,
+                "numInName": 17,
+                "url": "https://media.blooket.com/image/upload/v1664323226/BlookParts/clothing17.svg"
+            }, {
+                "id": 18,
+                "numInName": 18,
+                "url": "https://media.blooket.com/image/upload/v1664323227/BlookParts/clothing18.svg"
+            }, {
+                "id": 19,
+                "numInName": 19,
+                "url": "https://media.blooket.com/image/upload/v1664323227/BlookParts/clothing19.svg"
+            }, {
+                "id": 20,
+                "numInName": 20,
+                "url": "https://media.blooket.com/image/upload/v1664323227/BlookParts/clothing20.svg"
+            }, {
+                "id": 21,
+                "numInName": 21,
+                "url": "https://media.blooket.com/image/upload/v1664323229/BlookParts/clothing21.svg"
+            }, {
+                "id": 22,
+                "numInName": 22,
+                "url": "https://media.blooket.com/image/upload/v1664323228/BlookParts/clothing22.svg"
+            }, {
+                "id": 23,
+                "numInName": 23,
+                "url": "https://media.blooket.com/image/upload/v1664324850/BlookParts/clothing23.svg"
+            }, {
+                "id": 24,
+                "numInName": 24,
+                "url": "https://media.blooket.com/image/upload/v1664324850/BlookParts/clothing24.svg"
+            }, {
+                "id": 25,
+                "numInName": 25,
+                "url": "https://media.blooket.com/image/upload/v1664324851/BlookParts/clothing25.svg"
+            }, {
+                "id": 26,
+                "numInName": 26,
+                "url": "https://media.blooket.com/image/upload/v1664324851/BlookParts/clothing26.svg"
+            }, {
+                "id": 27,
+                "numInName": 27,
+                "url": "https://media.blooket.com/image/upload/v1664324845/BlookParts/clothing27.svg"
+            }, {
+                "id": 28,
+                "numInName": 28,
+                "url": "https://media.blooket.com/image/upload/v1664324845/BlookParts/clothing28.svg"
+            }, {
+                "id": 29,
+                "numInName": 29,
+                "url": "https://media.blooket.com/image/upload/v1664325719/BlookParts/clothing29.svg"
+            }, {
+                "id": 30,
+                "numInName": 30,
+                "url": "https://media.blooket.com/image/upload/v1664325719/BlookParts/clothing30.svg"
+            }, {
+                "id": 31,
+                "numInName": 31,
+                "url": "https://media.blooket.com/image/upload/v1664325719/BlookParts/clothing31.svg"
+            }, {
+                "id": 32,
+                "numInName": 32,
+                "url": "https://media.blooket.com/image/upload/v1664325719/BlookParts/clothing32.svg"
+            }, {
+                "id": 33,
+                "numInName": 33,
+                "url": "https://media.blooket.com/image/upload/v1664325719/BlookParts/clothing33.svg"
+            }, {
+                "id": 34,
+                "numInName": 34,
+                "url": "https://media.blooket.com/image/upload/v1664325720/BlookParts/clothing34.svg"
+            }, {
+                "id": 35,
+                "numInName": 35,
+                "url": "https://media.blooket.com/image/upload/v1664326438/BlookParts/clothing35.svg"
+            }, {
+                "id": 36,
+                "numInName": 36,
+                "url": "https://media.blooket.com/image/upload/v1664326438/BlookParts/clothing36.svg"
+            }, {
+                "id": 37,
+                "numInName": 37,
+                "url": "https://media.blooket.com/image/upload/v1664334110/BlookParts/clothing37.svg"
+            }, {
+                "id": 38,
+                "numInName": 38,
+                "url": "https://media.blooket.com/image/upload/v1664334110/BlookParts/clothing38.svg"
+            }, {
+                "id": 39,
+                "numInName": 39,
+                "url": "https://media.blooket.com/image/upload/v1664334110/BlookParts/clothing39.svg"
+            }, {
+                "id": 40,
+                "numInName": 40,
+                "url": "https://media.blooket.com/image/upload/v1664334110/BlookParts/clothing40.svg"
+            }, {
+                "id": 41,
+                "numInName": 41,
+                "url": "https://media.blooket.com/image/upload/v1664334112/BlookParts/clothing41.svg"
+            }, {
+                "id": 42,
+                "numInName": 42,
+                "url": "https://media.blooket.com/image/upload/v1664334112/BlookParts/clothing42.svg"
+            }, {
+                "id": 43,
+                "numInName": 43,
+                "url": "https://media.blooket.com/image/upload/v1664334112/BlookParts/clothing43.svg"
+            }, {
+                "id": 44,
+                "numInName": 44,
+                "url": "https://media.blooket.com/image/upload/v1666686735/BlookParts/clothing44.svg"
+            }, {
+                "id": 45,
+                "numInName": 45,
+                "url": "https://media.blooket.com/image/upload/v1666686735/BlookParts/clothing45.svg"
+            }, {
+                "id": 46,
+                "numInName": 46,
+                "url": "https://media.blooket.com/image/upload/v1666686735/BlookParts/clothing46.svg"
+            }, {
+                "id": 47,
+                "numInName": 47,
+                "url": "https://media.blooket.com/image/upload/v1669084280/BlookParts/clothing47.svg"
+            }, {
+                "id": 48,
+                "numInName": 48,
+                "url": "https://media.blooket.com/image/upload/v1670303596/BlookParts/clothing48.svg"
+            }, {
+                "id": 49,
+                "numInName": 49,
+                "url": "https://media.blooket.com/image/upload/v1670912133/BlookParts/clothing49.svg"
+            }, {
+                "id": 50,
+                "numInName": 50,
+                "url": "https://media.blooket.com/image/upload/v1671528728/BlookParts/clothing50.svg"
+            }, {
+                "id": 51,
+                "numInName": 51,
+                "url": "https://media.blooket.com/image/upload/v1671528728/BlookParts/clothing51.svg"
+            }, {
+                "id": 52,
+                "numInName": 52,
+                "url": "https://media.blooket.com/image/upload/v1679268052/BlookParts/clothing52.svg"
+            }, {
+                "id": 53,
+                "numInName": 53,
+                "url": "https://media.blooket.com/image/upload/v1695265659/BlookParts/clothing53.svg"
+            }, {
+                "id": 54,
+                "numInName": 54,
+                "url": "https://media.blooket.com/image/upload/v1695265660/BlookParts/clothing54.svg"
+            }, {
+                "id": 55,
+                "numInName": 55,
+                "url": "https://media.blooket.com/image/upload/v1695265625/BlookParts/clothing55.svg"
+            }, {
+                "id": 56,
+                "numInName": 56,
+                "url": "https://media.blooket.com/image/upload/v1695265625/BlookParts/clothing56.svg"
+            }, {
+                "id": 57,
+                "numInName": 57,
+                "url": "https://media.blooket.com/image/upload/v1695265626/BlookParts/clothing57.svg"
+            }, {
+                "id": 58,
+                "numInName": 58,
+                "url": "https://media.blooket.com/image/upload/v1695265626/BlookParts/clothing58.svg"
+            }, {
+                "id": 59,
+                "numInName": 59,
+                "url": "https://media.blooket.com/image/upload/v1695265626/BlookParts/clothing59.svg"
+            }, {
+                "id": 60,
+                "numInName": 60,
+                "url": "https://media.blooket.com/image/upload/v1695265626/BlookParts/clothing60.svg"
+            }, {
+                "id": 61,
+                "numInName": 61,
+                "url": "https://media.blooket.com/image/upload/v1695265627/BlookParts/clothing61.svg"
+            }, {
+                "id": 62,
+                "numInName": 62,
+                "url": "https://media.blooket.com/image/upload/v1695265627/BlookParts/clothing62.svg"
+            }, {
+                "id": 63,
+                "numInName": 63,
+                "url": "https://media.blooket.com/image/upload/v1695265627/BlookParts/clothing63.svg"
+            }, {
+                "id": 64,
+                "numInName": 64,
+                "url": "https://media.blooket.com/image/upload/v1695265627/BlookParts/clothing64.svg"
+            }, {
+                "id": 65,
+                "numInName": 65,
+                "url": "https://media.blooket.com/image/upload/v1695265628/BlookParts/clothing65.svg"
+            }, {
+                "id": 66,
+                "numInName": 66,
+                "url": "https://media.blooket.com/image/upload/v1695265628/BlookParts/clothing66.svg"
+            }, {
+                "id": 67,
+                "numInName": 67,
+                "url": "https://media.blooket.com/image/upload/v1695265629/BlookParts/clothing67.svg"
+            }, {
+                "id": 68,
+                "numInName": 68,
+                "url": "https://media.blooket.com/image/upload/v1695265629/BlookParts/clothing68.svg"
+            }, {
+                "id": 69,
+                "numInName": 69,
+                "url": "https://media.blooket.com/image/upload/v1695265630/BlookParts/clothing69.svg"
+            }, {
+                "id": 70,
+                "numInName": 70,
+                "url": "https://media.blooket.com/image/upload/v1695265630/BlookParts/clothing70.svg"
+            }, {
+                "id": 71,
+                "numInName": 71,
+                "url": "https://media.blooket.com/image/upload/v1695265630/BlookParts/clothing71.svg"
+            }, {
+                "id": 72,
+                "numInName": 72,
+                "url": "https://media.blooket.com/image/upload/v1695265631/BlookParts/clothing72.svg"
+            }, {
+                "id": 73,
+                "numInName": 73,
+                "url": "https://media.blooket.com/image/upload/v1695265631/BlookParts/clothing73.svg"
+            }, {
+                "id": 74,
+                "numInName": 74,
+                "url": "https://media.blooket.com/image/upload/v1695265631/BlookParts/clothing74.svg"
+            }, {
+                "id": 75,
+                "numInName": 75,
+                "url": "https://media.blooket.com/image/upload/v1695265632/BlookParts/clothing75.svg"
+            }, {
+                "id": 76,
+                "numInName": 76,
+                "url": "https://media.blooket.com/image/upload/v1695265632/BlookParts/clothing76.svg"
+            }, {
+                "id": 77,
+                "numInName": 77,
+                "url": "https://media.blooket.com/image/upload/v1695265632/BlookParts/clothing77.svg"
+            }, {
+                "id": 78,
+                "numInName": 78,
+                "url": "https://media.blooket.com/image/upload/v1695265633/BlookParts/clothing78.svg"
+            }, {
+                "id": 79,
+                "numInName": 79,
+                "url": "https://media.blooket.com/image/upload/v1695265633/BlookParts/clothing79.svg"
+            }, {
+                "id": 80,
+                "numInName": 80,
+                "url": "https://media.blooket.com/image/upload/v1695265633/BlookParts/clothing80.svg"
+            }, {
+                "id": 81,
+                "numInName": 81,
+                "url": "https://media.blooket.com/image/upload/v1695265634/BlookParts/clothing81.svg"
+            }, {
+                "id": 82,
+                "numInName": 82,
+                "url": "https://media.blooket.com/image/upload/v1696372287/BlookParts/clothing82.svg"
+            }, {
+                "id": 83,
+                "numInName": 83,
+                "url": "https://media.blooket.com/image/upload/v1696372288/BlookParts/clothing83.svg"
+            }, {
+                "id": 84,
+                "numInName": 84,
+                "url": "https://media.blooket.com/image/upload/v1696372288/BlookParts/clothing84.svg"
+            }, {
+                "id": 85,
+                "numInName": 85,
+                "url": "https://media.blooket.com/image/upload/v1701743199/BlookParts/clothing85.svg"
+            }, {
+                "id": 86,
+                "numInName": 86,
+                "url": "https://media.blooket.com/image/upload/v1701743199/BlookParts/clothing86.svg"
+            }, {
+                "id": 87,
+                "numInName": 87,
+                "url": "https://media.blooket.com/image/upload/v1701743199/BlookParts/clothing87.svg"
+            }, {
+                "id": 88,
+                "numInName": 88,
+                "url": "https://media.blooket.com/image/upload/v1726105760/BlookParts/clothing88.svg"
+            }, {
+                "id": 89,
+                "numInName": 89,
+                "url": "https://media.blooket.com/image/upload/v1726105760/BlookParts/clothing89.svg"
+            }, {
+                "id": 90,
+                "numInName": 90,
+                "url": "https://media.blooket.com/image/upload/v1726105760/BlookParts/clothing90.svg"
+            }, {
+                "id": 91,
+                "numInName": 91,
+                "url": "https://media.blooket.com/image/upload/v1726105760/BlookParts/clothing91.svg"
+            }, {
+                "id": 92,
+                "numInName": 92,
+                "url": "https://media.blooket.com/image/upload/v1726105760/BlookParts/clothing92.svg"
+            }, {
+                "id": 93,
+                "numInName": 93,
+                "url": "https://media.blooket.com/image/upload/v1726105760/BlookParts/clothing93.svg"
+            }, {
+                "id": 94,
+                "numInName": 94,
+                "url": "https://media.blooket.com/image/upload/v1726105762/BlookParts/clothing94.svg"
+            }, {
+                "id": 95,
+                "numInName": 95,
+                "url": "https://media.blooket.com/image/upload/v1726105763/BlookParts/clothing95.svg"
+            }, {
+                "id": 96,
+                "numInName": 96,
+                "url": "https://media.blooket.com/image/upload/v1726105764/BlookParts/clothing96.svg"
+            }, {
+                "id": 97,
+                "numInName": 97,
+                "url": "https://media.blooket.com/image/upload/v1726105765/BlookParts/clothing97.svg"
+            }, {
+                "id": 98,
+                "numInName": 98,
+                "url": "https://media.blooket.com/image/upload/v1726105765/BlookParts/clothing98.svg"
+            }, {
+                "id": 99,
+                "numInName": 99,
+                "url": "https://media.blooket.com/image/upload/v1726105765/BlookParts/clothing99.svg"
+            }, {
+                "id": 100,
+                "numInName": 100,
+                "url": "https://media.blooket.com/image/upload/v1726105767/BlookParts/clothing100.svg"
+            }, {
+                "id": 101,
+                "numInName": 101,
+                "url": "https://media.blooket.com/image/upload/v1726105767/BlookParts/clothing101.svg"
+            }, {
+                "id": 102,
+                "numInName": 102,
+                "url": "https://media.blooket.com/image/upload/v1726105768/BlookParts/clothing102.svg"
+            }, {
+                "id": 103,
+                "numInName": 103,
+                "url": "https://media.blooket.com/image/upload/v1726105768/BlookParts/clothing103.svg"
+            }, {
+                "id": 104,
+                "numInName": 104,
+                "url": "https://media.blooket.com/image/upload/v1726105769/BlookParts/clothing104.svg"
+            }, {
+                "id": 105,
+                "numInName": 105,
+                "url": "https://media.blooket.com/image/upload/v1726105769/BlookParts/clothing105.svg"
+            }, {
+                "id": 106,
+                "numInName": 106,
+                "url": "https://media.blooket.com/image/upload/v1726105770/BlookParts/clothing106.svg"
+            }, {
+                "id": 107,
+                "numInName": 107,
+                "url": "https://media.blooket.com/image/upload/v1726105771/BlookParts/clothing107.svg"
+            }, {
+                "id": 108,
+                "numInName": 108,
+                "url": "https://media.blooket.com/image/upload/v1726105773/BlookParts/clothing108.svg"
+            }, {
+                "id": 109,
+                "numInName": 109,
+                "url": "https://media.blooket.com/image/upload/v1726105773/BlookParts/clothing109.svg"
+            }, {
+                "id": 110,
+                "numInName": 110,
+                "url": "https://media.blooket.com/image/upload/v1728608104/BlookParts/clothing110.svg"
+            }, {
+                "id": 111,
+                "numInName": 111,
+                "url": "https://media.blooket.com/image/upload/v1733205076/BlookParts/clothing111.svg"
+            }, {
+                "id": 112,
+                "numInName": 112,
+                "url": "https://media.blooket.com/image/upload/v1733205245/BlookParts/clothing112.svg"
+            }, {
+                "id": 113,
+                "numInName": 113,
+                "url": "https://media.blooket.com/image/upload/v1758008838/BlookParts/clothing113.svg"
+            }, {
+                "id": 114,
+                "numInName": 114,
+                "url": "https://media.blooket.com/image/upload/v1758008838/BlookParts/clothing114.svg"
+            }, {
+                "id": 115,
+                "numInName": 115,
+                "url": "https://media.blooket.com/image/upload/v1758008839/BlookParts/clothing115.svg"
+            }, {
+                "id": 116,
+                "numInName": 116,
+                "url": "https://media.blooket.com/image/upload/v1758008839/BlookParts/clothing116.svg"
+            }, {
+                "id": 117,
+                "numInName": 117,
+                "url": "https://media.blooket.com/image/upload/v1758008839/BlookParts/clothing117.svg"
+            }, {
+                "id": 118,
+                "numInName": 118,
+                "url": "https://media.blooket.com/image/upload/v1758008839/BlookParts/clothing118.svg"
+            }, {
+                "id": 119,
+                "numInName": 119,
+                "url": "https://media.blooket.com/image/upload/v1758008840/BlookParts/clothing119.svg"
+            }, {
+                "id": 120,
+                "numInName": 120,
+                "url": "https://media.blooket.com/image/upload/v1758008840/BlookParts/clothing120.svg"
+            }, {
+                "id": 121,
+                "numInName": 121,
+                "url": "https://media.blooket.com/image/upload/v1758008841/BlookParts/clothing121.svg"
+            }, {
+                "id": 122,
+                "numInName": 122,
+                "url": "https://media.blooket.com/image/upload/v1758008841/BlookParts/clothing122.svg"
+            }, {
+                "id": 123,
+                "numInName": 123,
+                "url": "https://media.blooket.com/image/upload/v1758008842/BlookParts/clothing123.svg"
+            }, {
+                "id": 124,
+                "numInName": 124,
+                "url": "https://media.blooket.com/image/upload/v1758008843/BlookParts/clothing124.svg"
+            }, {
+                "id": 125,
+                "numInName": 125,
+                "url": "https://media.blooket.com/image/upload/v1758008843/BlookParts/clothing125.svg"
+            }, {
+                "id": 126,
+                "numInName": 126,
+                "url": "https://media.blooket.com/image/upload/v1758008844/BlookParts/clothing126.svg"
+            }, {
+                "id": 127,
+                "numInName": 127,
+                "url": "https://media.blooket.com/image/upload/v1758008845/BlookParts/clothing127.svg"
+            }, {
+                "id": 128,
+                "numInName": 128,
+                "url": "https://media.blooket.com/image/upload/v1758008846/BlookParts/clothing128.svg"
+            }, {
+                "id": 129,
+                "numInName": 129,
+                "url": "https://media.blooket.com/image/upload/v1758008846/BlookParts/clothing129.svg"
+            }, {
+                "id": 130,
+                "numInName": 130,
+                "url": "https://media.blooket.com/image/upload/v1758008846/BlookParts/clothing130.svg"
+            }, {
+                "id": 131,
+                "numInName": 131,
+                "url": "https://media.blooket.com/image/upload/v1758008849/BlookParts/clothing131.svg"
+            }, {
+                "id": 132,
+                "numInName": 132,
+                "url": "https://media.blooket.com/image/upload/v1758008850/BlookParts/clothing132.svg"
+            }, {
+                "id": 133,
+                "numInName": 133,
+                "url": "https://media.blooket.com/image/upload/v1758008851/BlookParts/clothing133.svg"
+            }, {
+                "id": 134,
+                "numInName": 134,
+                "url": "https://media.blooket.com/image/upload/v1758008851/BlookParts/clothing134.svg"
+            }, {
+                "id": 135,
+                "numInName": 135,
+                "url": "https://media.blooket.com/image/upload/v1758008852/BlookParts/clothing135.svg"
+            }, {
+                "id": 136,
+                "numInName": 136,
+                "url": "https://media.blooket.com/image/upload/v1758008852/BlookParts/clothing136.svg"
+            }, {
+                "id": 137,
+                "numInName": 137,
+                "url": "https://media.blooket.com/image/upload/v1758008853/BlookParts/clothing137.svg"
+            }, {
+                "id": 138,
+                "numInName": 138,
+                "url": "https://media.blooket.com/image/upload/v1758008854/BlookParts/clothing138.svg"
+            }, {
+                "id": 139,
+                "numInName": 139,
+                "url": "https://media.blooket.com/image/upload/v1758008855/BlookParts/clothing139.svg"
+            }, {
+                "id": 140,
+                "numInName": 140,
+                "url": "https://media.blooket.com/image/upload/v1758008856/BlookParts/clothing140.svg"
+            }, {
+                "id": 141,
+                "numInName": 141,
+                "url": "https://media.blooket.com/image/upload/v1758008857/BlookParts/clothing141.svg"
+            }, {
+                "id": 142,
+                "numInName": 142,
+                "url": "https://media.blooket.com/image/upload/v1758008857/BlookParts/clothing142.svg"
+            }],
+            "eyes": [{
+                "id": 1,
+                "numInName": 0,
+                "url": "https://media.blooket.com/image/upload/v1634087707/BlookParts/eyes0.svg"
+            }, {
+                "id": 2,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087719/BlookParts/eyes1.svg"
+            }, {
+                "id": 3,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087721/BlookParts/eyes2.svg"
+            }, {
+                "id": 4,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087723/BlookParts/eyes3.svg"
+            }, {
+                "id": 5,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087740/BlookParts/eyes4.svg"
+            }, {
+                "id": 6,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087742/BlookParts/eyes5.svg"
+            }, {
+                "id": 7,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087747/BlookParts/eyes6.svg"
+            }, {
+                "id": 8,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1634087759/BlookParts/eyes7.svg"
+            }, {
+                "id": 9,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1634087764/BlookParts/eyes8.svg"
+            }, {
+                "id": 10,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1634087770/BlookParts/eyes9.svg"
+            }, {
+                "id": 11,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1634087780/BlookParts/eyes10.svg"
+            }, {
+                "id": 12,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1634087782/BlookParts/eyes11.svg"
+            }, {
+                "id": 13,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1664326436/BlookParts/eyes12.svg"
+            }, {
+                "id": 14,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1664334112/BlookParts/eyes13.svg"
+            }, {
+                "id": 15,
+                "numInName": 14,
+                "url": "https://media.blooket.com/image/upload/v1695265634/BlookParts/eyes14.svg"
+            }, {
+                "id": 16,
+                "numInName": 15,
+                "url": "https://media.blooket.com/image/upload/v1696372289/BlookParts/eyes15.svg"
+            }, {
+                "id": 17,
+                "numInName": 16,
+                "url": "https://media.blooket.com/image/upload/v1726105774/BlookParts/eyes16.svg"
+            }, {
+                "id": 18,
+                "numInName": 17,
+                "url": "https://media.blooket.com/image/upload/v1726105775/BlookParts/eyes17.svg"
+            }, {
+                "id": 19,
+                "numInName": 18,
+                "url": "https://media.blooket.com/image/upload/v1726105775/BlookParts/eyes18.svg"
+            }, {
+                "id": 20,
+                "numInName": 19,
+                "url": "https://media.blooket.com/image/upload/v1726105775/BlookParts/eyes19.svg"
+            }, {
+                "id": 21,
+                "numInName": 20,
+                "url": "https://media.blooket.com/image/upload/v1758008858/BlookParts/eyes20.svg"
+            }, {
+                "id": 22,
+                "numInName": 21,
+                "url": "https://media.blooket.com/image/upload/v1758008858/BlookParts/eyes21.svg"
+            }],
+            "glasses": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087784/BlookParts/glasses1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087786/BlookParts/glasses2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087791/BlookParts/glasses3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087792/BlookParts/glasses4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087804/BlookParts/glasses5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087805/BlookParts/glasses6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1634087806/BlookParts/glasses7.svg"
+            }, {
+                "id": 8,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1634087809/BlookParts/glasses8.svg"
+            }, {
+                "id": 9,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1664323228/BlookParts/glasses9.svg"
+            }, {
+                "id": 10,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1664324845/BlookParts/glasses10.svg"
+            }, {
+                "id": 11,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1664324845/BlookParts/glasses11.svg"
+            }, {
+                "id": 12,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1664324845/BlookParts/glasses12.svg"
+            }, {
+                "id": 13,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1664324845/BlookParts/glasses13.svg"
+            }, {
+                "id": 14,
+                "numInName": 14,
+                "url": "https://media.blooket.com/image/upload/v1664324847/BlookParts/glasses14.svg"
+            }, {
+                "id": 15,
+                "numInName": 15,
+                "url": "https://media.blooket.com/image/upload/v1664334114/BlookParts/glasses15.svg"
+            }, {
+                "id": 16,
+                "numInName": 16,
+                "url": "https://media.blooket.com/image/upload/v1664334114/BlookParts/glasses16.svg"
+            }, {
+                "id": 17,
+                "numInName": 17,
+                "url": "https://media.blooket.com/image/upload/v1695265634/BlookParts/glasses17.svg"
+            }, {
+                "id": 18,
+                "numInName": 18,
+                "url": "https://media.blooket.com/image/upload/v1695265635/BlookParts/glasses18.svg"
+            }, {
+                "id": 19,
+                "numInName": 19,
+                "url": "https://media.blooket.com/image/upload/v1695265635/BlookParts/glasses19.svg"
+            }, {
+                "id": 20,
+                "numInName": 20,
+                "url": "https://media.blooket.com/image/upload/v1695265635/BlookParts/glasses20.svg"
+            }, {
+                "id": 21,
+                "numInName": 21,
+                "url": "https://media.blooket.com/image/upload/v1695265636/BlookParts/glasses21.svg"
+            }, {
+                "id": 22,
+                "numInName": 22,
+                "url": "https://media.blooket.com/image/upload/v1695265636/BlookParts/glasses22.svg"
+            }, {
+                "id": 23,
+                "numInName": 23,
+                "url": "https://media.blooket.com/image/upload/v1695265636/BlookParts/glasses23.svg"
+            }, {
+                "id": 24,
+                "numInName": 24,
+                "url": "https://media.blooket.com/image/upload/v1695265637/BlookParts/glasses24.svg"
+            }, {
+                "id": 25,
+                "numInName": 25,
+                "url": "https://media.blooket.com/image/upload/v1726105775/BlookParts/glasses25.svg"
+            }, {
+                "id": 26,
+                "numInName": 26,
+                "url": "https://media.blooket.com/image/upload/v1726105776/BlookParts/glasses26.svg"
+            }, {
+                "id": 27,
+                "numInName": 27,
+                "url": "https://media.blooket.com/image/upload/v1726105777/BlookParts/glasses27.svg"
+            }, {
+                "id": 28,
+                "numInName": 28,
+                "url": "https://media.blooket.com/image/upload/v1726105777/BlookParts/glasses28.svg"
+            }, {
+                "id": 29,
+                "numInName": 29,
+                "url": "https://media.blooket.com/image/upload/v1726105777/BlookParts/glasses29.svg"
+            }, {
+                "id": 30,
+                "numInName": 30,
+                "url": "https://media.blooket.com/image/upload/v1726105778/BlookParts/glasses30.svg"
+            }, {
+                "id": 31,
+                "numInName": 31,
+                "url": "https://media.blooket.com/image/upload/v1726105778/BlookParts/glasses31.svg"
+            }, {
+                "id": 32,
+                "numInName": 32,
+                "url": "https://media.blooket.com/image/upload/v1726105778/BlookParts/glasses32.svg"
+            }, {
+                "id": 33,
+                "numInName": 33,
+                "url": "https://media.blooket.com/image/upload/v1726105779/BlookParts/glasses33.svg"
+            }, {
+                "id": 34,
+                "numInName": 34,
+                "url": "https://media.blooket.com/image/upload/v1758008863/BlookParts/glasses34.svg"
+            }, {
+                "id": 35,
+                "numInName": 35,
+                "url": "https://media.blooket.com/image/upload/v1758008863/BlookParts/glasses35.svg"
+            }, {
+                "id": 36,
+                "numInName": 36,
+                "url": "https://media.blooket.com/image/upload/v1758008863/BlookParts/glasses36.svg"
+            }, {
+                "id": 37,
+                "numInName": 37,
+                "url": "https://media.blooket.com/image/upload/v1758008864/BlookParts/glasses37.svg"
+            }, {
+                "id": 38,
+                "numInName": 38,
+                "url": "https://media.blooket.com/image/upload/v1758008864/BlookParts/glasses38.svg"
+            }, {
+                "id": 39,
+                "numInName": 39,
+                "url": "https://media.blooket.com/image/upload/v1758008864/BlookParts/glasses39.svg"
+            }, {
+                "id": 40,
+                "numInName": 40,
+                "url": "https://media.blooket.com/image/upload/v1758008864/BlookParts/glasses40.svg"
+            }, {
+                "id": 41,
+                "numInName": 41,
+                "url": "https://media.blooket.com/image/upload/v1758008865/BlookParts/glasses41.svg"
+            }],
+            "hair": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087810/BlookParts/hair1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087827/BlookParts/hair2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087829/BlookParts/hair3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087830/BlookParts/hair4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087835/BlookParts/hair5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087836/BlookParts/hair6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1634087837/BlookParts/hair7.svg"
+            }, {
+                "id": 8,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1634087847/BlookParts/hair8.svg"
+            }, {
+                "id": 9,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1634087849/BlookParts/hair9.svg"
+            }, {
+                "id": 10,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1634087851/BlookParts/hair10.svg"
+            }, {
+                "id": 11,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1634087852/BlookParts/hair11.svg"
+            }, {
+                "id": 12,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1634087855/BlookParts/hair12.svg"
+            }, {
+                "id": 13,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1664326436/BlookParts/hair13.svg"
+            }, {
+                "id": 14,
+                "numInName": 14,
+                "url": "https://media.blooket.com/image/upload/v1664326436/BlookParts/hair14.svg"
+            }, {
+                "id": 15,
+                "numInName": 15,
+                "url": "https://media.blooket.com/image/upload/v1664334307/BlookParts/hair15.svg"
+            }, {
+                "id": 16,
+                "numInName": 16,
+                "url": "https://media.blooket.com/image/upload/v1664334307/BlookParts/hair16.svg"
+            }, {
+                "id": 17,
+                "numInName": 17,
+                "url": "https://media.blooket.com/image/upload/v1664334307/BlookParts/hair17.svg"
+            }, {
+                "id": 18,
+                "numInName": 18,
+                "url": "https://media.blooket.com/image/upload/v1678767661/BlookParts/hair18.svg"
+            }, {
+                "id": 19,
+                "numInName": 19,
+                "url": "https://media.blooket.com/image/upload/v1695265637/BlookParts/hair19.svg"
+            }, {
+                "id": 20,
+                "numInName": 20,
+                "url": "https://media.blooket.com/image/upload/v1695265638/BlookParts/hair20.svg"
+            }, {
+                "id": 21,
+                "numInName": 21,
+                "url": "https://media.blooket.com/image/upload/v1695265637/BlookParts/hair21.svg"
+            }, {
+                "id": 22,
+                "numInName": 22,
+                "url": "https://media.blooket.com/image/upload/v1695265638/BlookParts/hair22.svg"
+            }, {
+                "id": 23,
+                "numInName": 23,
+                "url": "https://media.blooket.com/image/upload/v1695265639/BlookParts/hair23.svg"
+            }, {
+                "id": 24,
+                "numInName": 24,
+                "url": "https://media.blooket.com/image/upload/v1695265639/BlookParts/hair24.svg"
+            }, {
+                "id": 25,
+                "numInName": 25,
+                "url": "https://media.blooket.com/image/upload/v1695265639/BlookParts/hair25.svg"
+            }, {
+                "id": 26,
+                "numInName": 26,
+                "url": "https://media.blooket.com/image/upload/v1695265640/BlookParts/hair26.svg"
+            }, {
+                "id": 27,
+                "numInName": 27,
+                "url": "https://media.blooket.com/image/upload/v1696372290/BlookParts/hair27.svg"
+            }, {
+                "id": 28,
+                "numInName": 28,
+                "url": "https://media.blooket.com/image/upload/v1726105780/BlookParts/hair28.svg"
+            }, {
+                "id": 29,
+                "numInName": 29,
+                "url": "https://media.blooket.com/image/upload/v1726105781/BlookParts/hair29.svg"
+            }, {
+                "id": 30,
+                "numInName": 30,
+                "url": "https://media.blooket.com/image/upload/v1726105782/BlookParts/hair30.svg"
+            }, {
+                "id": 31,
+                "numInName": 31,
+                "url": "https://media.blooket.com/image/upload/v1726105782/BlookParts/hair31.svg"
+            }, {
+                "id": 32,
+                "numInName": 32,
+                "url": "https://media.blooket.com/image/upload/v1726105782/BlookParts/hair32.svg"
+            }, {
+                "id": 33,
+                "numInName": 33,
+                "url": "https://media.blooket.com/image/upload/v1726105782/BlookParts/hair33.svg"
+            }, {
+                "id": 34,
+                "numInName": 34,
+                "url": "https://media.blooket.com/image/upload/v1726105783/BlookParts/hair34.svg"
+            }, {
+                "id": 35,
+                "numInName": 35,
+                "url": "https://media.blooket.com/image/upload/v1758008866/BlookParts/hair35.svg"
+            }, {
+                "id": 36,
+                "numInName": 36,
+                "url": "https://media.blooket.com/image/upload/v1758008869/BlookParts/hair36.svg"
+            }, {
+                "id": 37,
+                "numInName": 37,
+                "url": "https://media.blooket.com/image/upload/v1758008870/BlookParts/hair37.svg"
+            }],
+            "hat": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087855/BlookParts/hat1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087861/BlookParts/hat2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087869/BlookParts/hat3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087870/BlookParts/hat4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087877/BlookParts/hat5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087878/BlookParts/hat6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1634087880/BlookParts/hat7.svg"
+            }, {
+                "id": 8,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1634087887/BlookParts/hat8.svg"
+            }, {
+                "id": 9,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1634087891/BlookParts/hat9.svg"
+            }, {
+                "id": 10,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1634087891/BlookParts/hat10.svg"
+            }, {
+                "id": 11,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1634087899/BlookParts/hat11.svg"
+            }, {
+                "id": 12,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1634087901/BlookParts/hat12.svg"
+            }, {
+                "id": 13,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1634087902/BlookParts/hat13.svg"
+            }, {
+                "id": 14,
+                "numInName": 14,
+                "url": "https://media.blooket.com/image/upload/v1664323229/BlookParts/hat14.svg"
+            }, {
+                "id": 15,
+                "numInName": 15,
+                "url": "https://media.blooket.com/image/upload/v1664323229/BlookParts/hat15.svg"
+            }, {
+                "id": 16,
+                "numInName": 16,
+                "url": "https://media.blooket.com/image/upload/v1664323229/BlookParts/hat16.svg"
+            }, {
+                "id": 17,
+                "numInName": 17,
+                "url": "https://media.blooket.com/image/upload/v1664323230/BlookParts/hat17.svg"
+            }, {
+                "id": 18,
+                "numInName": 18,
+                "url": "https://media.blooket.com/image/upload/v1664323230/BlookParts/hat18.svg"
+            }, {
+                "id": 19,
+                "numInName": 19,
+                "url": "https://media.blooket.com/image/upload/v1664323230/BlookParts/hat19.svg"
+            }, {
+                "id": 20,
+                "numInName": 20,
+                "url": "https://media.blooket.com/image/upload/v1664324847/BlookParts/hat20.svg"
+            }, {
+                "id": 21,
+                "numInName": 21,
+                "url": "https://media.blooket.com/image/upload/v1664324847/BlookParts/hat21.svg"
+            }, {
+                "id": 22,
+                "numInName": 22,
+                "url": "https://media.blooket.com/image/upload/v1664324847/BlookParts/hat22.svg"
+            }, {
+                "id": 23,
+                "numInName": 23,
+                "url": "https://media.blooket.com/image/upload/v1664324847/BlookParts/hat23.svg"
+            }, {
+                "id": 24,
+                "numInName": 24,
+                "url": "https://media.blooket.com/image/upload/v1664324848/BlookParts/hat24.svg"
+            }, {
+                "id": 25,
+                "numInName": 25,
+                "url": "https://media.blooket.com/image/upload/v1664324849/BlookParts/hat25.svg"
+            }, {
+                "id": 26,
+                "numInName": 26,
+                "url": "https://media.blooket.com/image/upload/v1664325721/BlookParts/hat26.svg"
+            }, {
+                "id": 27,
+                "numInName": 27,
+                "url": "https://media.blooket.com/image/upload/v1664325715/BlookParts/hat27.svg"
+            }, {
+                "id": 28,
+                "numInName": 28,
+                "url": "https://media.blooket.com/image/upload/v1664325715/BlookParts/hat28.svg"
+            }, {
+                "id": 29,
+                "numInName": 29,
+                "url": "https://media.blooket.com/image/upload/v1664325715/BlookParts/hat29.svg"
+            }, {
+                "id": 30,
+                "numInName": 30,
+                "url": "https://media.blooket.com/image/upload/v1664325715/BlookParts/hat30.svg"
+            }, {
+                "id": 31,
+                "numInName": 31,
+                "url": "https://media.blooket.com/image/upload/v1664334114/BlookParts/hat31.svg"
+            }, {
+                "id": 32,
+                "numInName": 32,
+                "url": "https://media.blooket.com/image/upload/v1664334335/BlookParts/hat32.svg"
+            }, {
+                "id": 33,
+                "numInName": 33,
+                "url": "https://media.blooket.com/image/upload/v1664334335/BlookParts/hat33.svg"
+            }, {
+                "id": 34,
+                "numInName": 34,
+                "url": "https://media.blooket.com/image/upload/v1664334335/BlookParts/hat34.svg"
+            }, {
+                "id": 35,
+                "numInName": 35,
+                "url": "https://media.blooket.com/image/upload/v1664334335/BlookParts/hat35.svg"
+            }, {
+                "id": 36,
+                "numInName": 36,
+                "url": "https://media.blooket.com/image/upload/v1664334335/BlookParts/hat36.svg"
+            }, {
+                "id": 37,
+                "numInName": 37,
+                "url": "https://media.blooket.com/image/upload/v1666686633/BlookParts/hat37.svg"
+            }, {
+                "id": 38,
+                "numInName": 38,
+                "url": "https://media.blooket.com/image/upload/v1666686633/BlookParts/hat38.svg"
+            }, {
+                "id": 39,
+                "numInName": 39,
+                "url": "https://media.blooket.com/image/upload/v1666686633/BlookParts/hat39.svg"
+            }, {
+                "id": 40,
+                "numInName": 40,
+                "url": "https://media.blooket.com/image/upload/v1666686633/BlookParts/hat40.svg"
+            }, {
+                "id": 41,
+                "numInName": 41,
+                "url": "https://media.blooket.com/image/upload/v1669108036/BlookParts/hat41.svg"
+            }, {
+                "id": 42,
+                "numInName": 42,
+                "url": "https://media.blooket.com/image/upload/v1669108036/BlookParts/hat42.svg"
+            }, {
+                "id": 43,
+                "numInName": 43,
+                "url": "https://media.blooket.com/image/upload/v1670303596/BlookParts/hat43.svg"
+            }, {
+                "id": 44,
+                "numInName": 44,
+                "url": "https://media.blooket.com/image/upload/v1670912133/BlookParts/hat44.svg"
+            }, {
+                "id": 45,
+                "numInName": 45,
+                "url": "https://media.blooket.com/image/upload/v1671528728/BlookParts/hat45.svg"
+            }, {
+                "id": 46,
+                "numInName": 46,
+                "url": "https://media.blooket.com/image/upload/v1671528728/BlookParts/hat46.svg"
+            }, {
+                "id": 47,
+                "numInName": 47,
+                "url": "https://media.blooket.com/image/upload/v1678767661/BlookParts/hat47.svg"
+            }, {
+                "id": 48,
+                "numInName": 48,
+                "url": "https://media.blooket.com/image/upload/v1695265640/BlookParts/hat48.svg"
+            }, {
+                "id": 49,
+                "numInName": 49,
+                "url": "https://media.blooket.com/image/upload/v1695265640/BlookParts/hat49.svg"
+            }, {
+                "id": 50,
+                "numInName": 50,
+                "url": "https://media.blooket.com/image/upload/v1695265641/BlookParts/hat50.svg"
+            }, {
+                "id": 51,
+                "numInName": 51,
+                "url": "https://media.blooket.com/image/upload/v1695265641/BlookParts/hat51.svg"
+            }, {
+                "id": 52,
+                "numInName": 52,
+                "url": "https://media.blooket.com/image/upload/v1695265641/BlookParts/hat52.svg"
+            }, {
+                "id": 53,
+                "numInName": 53,
+                "url": "https://media.blooket.com/image/upload/v1695265642/BlookParts/hat53.svg"
+            }, {
+                "id": 54,
+                "numInName": 54,
+                "url": "https://media.blooket.com/image/upload/v1695265642/BlookParts/hat54.svg"
+            }, {
+                "id": 55,
+                "numInName": 55,
+                "url": "https://media.blooket.com/image/upload/v1695265642/BlookParts/hat55.svg"
+            }, {
+                "id": 56,
+                "numInName": 56,
+                "url": "https://media.blooket.com/image/upload/v1695265643/BlookParts/hat56.svg"
+            }, {
+                "id": 57,
+                "numInName": 57,
+                "url": "https://media.blooket.com/image/upload/v1695265643/BlookParts/hat57.svg"
+            }, {
+                "id": 58,
+                "numInName": 58,
+                "url": "https://media.blooket.com/image/upload/v1695265644/BlookParts/hat58.svg"
+            }, {
+                "id": 59,
+                "numInName": 59,
+                "url": "https://media.blooket.com/image/upload/v1695265644/BlookParts/hat59.svg"
+            }, {
+                "id": 60,
+                "numInName": 60,
+                "url": "https://media.blooket.com/image/upload/v1695265644/BlookParts/hat60.svg"
+            }, {
+                "id": 61,
+                "numInName": 61,
+                "url": "https://media.blooket.com/image/upload/v1695265645/BlookParts/hat61.svg"
+            }, {
+                "id": 62,
+                "numInName": 62,
+                "url": "https://media.blooket.com/image/upload/v1695265645/BlookParts/hat62.svg"
+            }, {
+                "id": 63,
+                "numInName": 63,
+                "url": "https://media.blooket.com/image/upload/v1695265646/BlookParts/hat63.svg"
+            }, {
+                "id": 64,
+                "numInName": 64,
+                "url": "https://media.blooket.com/image/upload/v1695265645/BlookParts/hat64.svg"
+            }, {
+                "id": 65,
+                "numInName": 65,
+                "url": "https://media.blooket.com/image/upload/v1695265646/BlookParts/hat65.svg"
+            }, {
+                "id": 66,
+                "numInName": 66,
+                "url": "https://media.blooket.com/image/upload/v1695265646/BlookParts/hat66.svg"
+            }, {
+                "id": 67,
+                "numInName": 67,
+                "url": "https://media.blooket.com/image/upload/v1695265647/BlookParts/hat67.svg"
+            }, {
+                "id": 68,
+                "numInName": 68,
+                "url": "https://media.blooket.com/image/upload/v1695265647/BlookParts/hat68.svg"
+            }, {
+                "id": 69,
+                "numInName": 69,
+                "url": "https://media.blooket.com/image/upload/v1695265647/BlookParts/hat69.svg"
+            }, {
+                "id": 70,
+                "numInName": 70,
+                "url": "https://media.blooket.com/image/upload/v1695265648/BlookParts/hat70.svg"
+            }, {
+                "id": 71,
+                "numInName": 71,
+                "url": "https://media.blooket.com/image/upload/v1695265648/BlookParts/hat71.svg"
+            }, {
+                "id": 72,
+                "numInName": 72,
+                "url": "https://media.blooket.com/image/upload/v1695265648/BlookParts/hat72.svg"
+            }, {
+                "id": 73,
+                "numInName": 73,
+                "url": "https://media.blooket.com/image/upload/v1695265649/BlookParts/hat73.svg"
+            }, {
+                "id": 74,
+                "numInName": 74,
+                "url": "https://media.blooket.com/image/upload/v1695265649/BlookParts/hat74.svg"
+            }, {
+                "id": 75,
+                "numInName": 75,
+                "url": "https://media.blooket.com/image/upload/v1695266827/BlookParts/hat75.svg"
+            }, {
+                "id": 76,
+                "numInName": 76,
+                "url": "https://media.blooket.com/image/upload/v1695266827/BlookParts/hat76.svg"
+            }, {
+                "id": 77,
+                "numInName": 77,
+                "url": "https://media.blooket.com/image/upload/v1695266827/BlookParts/hat77.svg"
+            }, {
+                "id": 78,
+                "numInName": 78,
+                "url": "https://media.blooket.com/image/upload/v1696372290/BlookParts/hat78.svg"
+            }, {
+                "id": 79,
+                "numInName": 79,
+                "url": "https://media.blooket.com/image/upload/v1696372286/BlookParts/hat79.svg"
+            }, {
+                "id": 80,
+                "numInName": 80,
+                "url": "https://media.blooket.com/image/upload/v1701743199/BlookParts/hat80.svg"
+            }, {
+                "id": 81,
+                "numInName": 81,
+                "url": "https://media.blooket.com/image/upload/v1701743200/BlookParts/hat81.svg"
+            }, {
+                "id": 82,
+                "numInName": 82,
+                "url": "https://media.blooket.com/image/upload/v1701743201/BlookParts/hat82.svg"
+            }, {
+                "id": 83,
+                "numInName": 83,
+                "url": "https://media.blooket.com/image/upload/v1726105784/BlookParts/hat83.svg"
+            }, {
+                "id": 84,
+                "numInName": 84,
+                "url": "https://media.blooket.com/image/upload/v1726105784/BlookParts/hat84.svg"
+            }, {
+                "id": 85,
+                "numInName": 85,
+                "url": "https://media.blooket.com/image/upload/v1726105784/BlookParts/hat85.svg"
+            }, {
+                "id": 86,
+                "numInName": 86,
+                "url": "https://media.blooket.com/image/upload/v1726105784/BlookParts/hat86.svg"
+            }, {
+                "id": 87,
+                "numInName": 87,
+                "url": "https://media.blooket.com/image/upload/v1726105784/BlookParts/hat87.svg"
+            }, {
+                "id": 88,
+                "numInName": 88,
+                "url": "https://media.blooket.com/image/upload/v1726105785/BlookParts/hat88.svg"
+            }, {
+                "id": 89,
+                "numInName": 89,
+                "url": "https://media.blooket.com/image/upload/v1726105786/BlookParts/hat89.svg"
+            }, {
+                "id": 90,
+                "numInName": 90,
+                "url": "https://media.blooket.com/image/upload/v1726105787/BlookParts/hat90.svg"
+            }, {
+                "id": 91,
+                "numInName": 91,
+                "url": "https://media.blooket.com/image/upload/v1726105790/BlookParts/hat91.svg"
+            }, {
+                "id": 92,
+                "numInName": 92,
+                "url": "https://media.blooket.com/image/upload/v1726105788/BlookParts/hat92.svg"
+            }, {
+                "id": 93,
+                "numInName": 93,
+                "url": "https://media.blooket.com/image/upload/v1726105791/BlookParts/hat93.svg"
+            }, {
+                "id": 94,
+                "numInName": 94,
+                "url": "https://media.blooket.com/image/upload/v1726105790/BlookParts/hat94.svg"
+            }, {
+                "id": 95,
+                "numInName": 95,
+                "url": "https://media.blooket.com/image/upload/v1726105789/BlookParts/hat95.svg"
+            }, {
+                "id": 96,
+                "numInName": 96,
+                "url": "https://media.blooket.com/image/upload/v1726105793/BlookParts/hat96.svg"
+            }, {
+                "id": 97,
+                "numInName": 97,
+                "url": "https://media.blooket.com/image/upload/v1726105793/BlookParts/hat97.svg"
+            }, {
+                "id": 98,
+                "numInName": 98,
+                "url": "https://media.blooket.com/image/upload/v1726105793/BlookParts/hat98.svg"
+            }, {
+                "id": 99,
+                "numInName": 99,
+                "url": "https://media.blooket.com/image/upload/v1726105794/BlookParts/hat99.svg"
+            }, {
+                "id": 100,
+                "numInName": 100,
+                "url": "https://media.blooket.com/image/upload/v1726105795/BlookParts/hat100.svg"
+            }, {
+                "id": 101,
+                "numInName": 101,
+                "url": "https://media.blooket.com/image/upload/v1726105796/BlookParts/hat101.svg"
+            }, {
+                "id": 102,
+                "numInName": 102,
+                "url": "https://media.blooket.com/image/upload/v1726105797/BlookParts/hat102.svg"
+            }, {
+                "id": 103,
+                "numInName": 103,
+                "url": "https://media.blooket.com/image/upload/v1726105797/BlookParts/hat103.svg"
+            }, {
+                "id": 104,
+                "numInName": 104,
+                "url": "https://media.blooket.com/image/upload/v1726105798/BlookParts/hat104.svg"
+            }, {
+                "id": 105,
+                "numInName": 105,
+                "url": "https://media.blooket.com/image/upload/v1726105798/BlookParts/hat105.svg"
+            }, {
+                "id": 106,
+                "numInName": 106,
+                "url": "https://media.blooket.com/image/upload/v1726105800/BlookParts/hat106.svg"
+            }, {
+                "id": 107,
+                "numInName": 107,
+                "url": "https://media.blooket.com/image/upload/v1726105800/BlookParts/hat107.svg"
+            }, {
+                "id": 108,
+                "numInName": 108,
+                "url": "https://media.blooket.com/image/upload/v1726105801/BlookParts/hat108.svg"
+            }, {
+                "id": 109,
+                "numInName": 109,
+                "url": "https://media.blooket.com/image/upload/v1726105803/BlookParts/hat109.svg"
+            }, {
+                "id": 110,
+                "numInName": 110,
+                "url": "https://media.blooket.com/image/upload/v1726105804/BlookParts/hat110.svg"
+            }, {
+                "id": 111,
+                "numInName": 111,
+                "url": "https://media.blooket.com/image/upload/v1726105805/BlookParts/hat111.svg"
+            }, {
+                "id": 112,
+                "numInName": 112,
+                "url": "https://media.blooket.com/image/upload/v1726105806/BlookParts/hat112.svg"
+            }, {
+                "id": 113,
+                "numInName": 113,
+                "url": "https://media.blooket.com/image/upload/v1726105807/BlookParts/hat113.svg"
+            }, {
+                "id": 114,
+                "numInName": 114,
+                "url": "https://media.blooket.com/image/upload/v1726105806/BlookParts/hat114.svg"
+            }, {
+                "id": 115,
+                "numInName": 115,
+                "url": "https://media.blooket.com/image/upload/v1726105808/BlookParts/hat115.svg"
+            }, {
+                "id": 116,
+                "numInName": 116,
+                "url": "https://media.blooket.com/image/upload/v1726105809/BlookParts/hat116.svg"
+            }, {
+                "id": 117,
+                "numInName": 117,
+                "url": "https://media.blooket.com/image/upload/v1726105809/BlookParts/hat117.svg"
+            }, {
+                "id": 118,
+                "numInName": 118,
+                "url": "https://media.blooket.com/image/upload/v1726105812/BlookParts/hat118.svg"
+            }, {
+                "id": 119,
+                "numInName": 119,
+                "url": "https://media.blooket.com/image/upload/v1728608104/BlookParts/hat119.svg"
+            }, {
+                "id": 120,
+                "numInName": 120,
+                "url": "https://media.blooket.com/image/upload/v1733205076/BlookParts/hat120.svg"
+            }, {
+                "id": 121,
+                "numInName": 121,
+                "url": "https://media.blooket.com/image/upload/v1733205328/BlookParts/hat121.svg"
+            }, {
+                "id": 122,
+                "numInName": 122,
+                "url": "https://media.blooket.com/image/upload/v1758008870/BlookParts/hat122.svg"
+            }, {
+                "id": 123,
+                "numInName": 123,
+                "url": "https://media.blooket.com/image/upload/v1758008871/BlookParts/hat123.svg"
+            }, {
+                "id": 124,
+                "numInName": 124,
+                "url": "https://media.blooket.com/image/upload/v1758008871/BlookParts/hat124.svg"
+            }, {
+                "id": 125,
+                "numInName": 125,
+                "url": "https://media.blooket.com/image/upload/v1758008871/BlookParts/hat125.svg"
+            }, {
+                "id": 126,
+                "numInName": 126,
+                "url": "https://media.blooket.com/image/upload/v1758008872/BlookParts/hat126.svg"
+            }, {
+                "id": 127,
+                "numInName": 127,
+                "url": "https://media.blooket.com/image/upload/v1758008873/BlookParts/hat127.svg"
+            }, {
+                "id": 128,
+                "numInName": 128,
+                "url": "https://media.blooket.com/image/upload/v1758008874/BlookParts/hat128.svg"
+            }, {
+                "id": 129,
+                "numInName": 129,
+                "url": "https://media.blooket.com/image/upload/v1758008874/BlookParts/hat129.svg"
+            }, {
+                "id": 130,
+                "numInName": 130,
+                "url": "https://media.blooket.com/image/upload/v1758008875/BlookParts/hat130.svg"
+            }, {
+                "id": 131,
+                "numInName": 131,
+                "url": "https://media.blooket.com/image/upload/v1758008878/BlookParts/hat131.svg"
+            }, {
+                "id": 132,
+                "numInName": 132,
+                "url": "https://media.blooket.com/image/upload/v1758008878/BlookParts/hat132.svg"
+            }, {
+                "id": 133,
+                "numInName": 133,
+                "url": "https://media.blooket.com/image/upload/v1758008879/BlookParts/hat133.svg"
+            }, {
+                "id": 134,
+                "numInName": 134,
+                "url": "https://media.blooket.com/image/upload/v1758008879/BlookParts/hat134.svg"
+            }, {
+                "id": 135,
+                "numInName": 135,
+                "url": "https://media.blooket.com/image/upload/v1758008880/BlookParts/hat135.svg"
+            }, {
+                "id": 136,
+                "numInName": 136,
+                "url": "https://media.blooket.com/image/upload/v1758008881/BlookParts/hat136.svg"
+            }, {
+                "id": 137,
+                "numInName": 137,
+                "url": "https://media.blooket.com/image/upload/v1758008883/BlookParts/hat137.svg"
+            }, {
+                "id": 138,
+                "numInName": 138,
+                "url": "https://media.blooket.com/image/upload/v1758008883/BlookParts/hat138.svg"
+            }, {
+                "id": 139,
+                "numInName": 139,
+                "url": "https://media.blooket.com/image/upload/v1758008883/BlookParts/hat139.svg"
+            }, {
+                "id": 140,
+                "numInName": 140,
+                "url": "https://media.blooket.com/image/upload/v1758008884/BlookParts/hat140.svg"
+            }, {
+                "id": 141,
+                "numInName": 141,
+                "url": "https://media.blooket.com/image/upload/v1758008885/BlookParts/hat141.svg"
+            }, {
+                "id": 142,
+                "numInName": 142,
+                "url": "https://media.blooket.com/image/upload/v1758008885/BlookParts/hat142.svg"
+            }, {
+                "id": 143,
+                "numInName": 143,
+                "url": "https://media.blooket.com/image/upload/v1758008885/BlookParts/hat143.svg"
+            }, {
+                "id": 144,
+                "numInName": 144,
+                "url": "https://media.blooket.com/image/upload/v1758008886/BlookParts/hat144.svg"
+            }, {
+                "id": 145,
+                "numInName": 145,
+                "url": "https://media.blooket.com/image/upload/v1758008888/BlookParts/hat145.svg"
+            }, {
+                "id": 146,
+                "numInName": 146,
+                "url": "https://media.blooket.com/image/upload/v1758008889/BlookParts/hat146.svg"
+            }, {
+                "id": 147,
+                "numInName": 147,
+                "url": "https://media.blooket.com/image/upload/v1758008890/BlookParts/hat147.svg"
+            }, {
+                "id": 148,
+                "numInName": 148,
+                "url": "https://media.blooket.com/image/upload/v1758008891/BlookParts/hat148.svg"
+            }, {
+                "id": 149,
+                "numInName": 149,
+                "url": "https://media.blooket.com/image/upload/v1758008892/BlookParts/hat149.svg"
+            }, {
+                "id": 150,
+                "numInName": 150,
+                "url": "https://media.blooket.com/image/upload/v1758008893/BlookParts/hat150.svg"
+            }, {
+                "id": 151,
+                "numInName": 151,
+                "url": "https://media.blooket.com/image/upload/v1758008894/BlookParts/hat151.svg"
+            }, {
+                "id": 152,
+                "numInName": 152,
+                "url": "https://media.blooket.com/image/upload/v1758008894/BlookParts/hat152.svg"
+            }, {
+                "id": 153,
+                "numInName": 153,
+                "url": "https://media.blooket.com/image/upload/v1758008896/BlookParts/hat153.svg"
+            }, {
+                "id": 154,
+                "numInName": 154,
+                "url": "https://media.blooket.com/image/upload/v1758008896/BlookParts/hat154.svg"
+            }, {
+                "id": 155,
+                "numInName": 155,
+                "url": "https://media.blooket.com/image/upload/v1758008899/BlookParts/hat155.svg"
+            }],
+            "item": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087902/BlookParts/item1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087903/BlookParts/item2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087903/BlookParts/item3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087915/BlookParts/item4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087920/BlookParts/item5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087921/BlookParts/item6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1634087922/BlookParts/item7.svg"
+            }, {
+                "id": 8,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1634087922/BlookParts/item8.svg"
+            }, {
+                "id": 9,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1634087927/BlookParts/item9.svg"
+            }, {
+                "id": 10,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1634087939/BlookParts/item10.svg"
+            }, {
+                "id": 11,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1634087942/BlookParts/item11.svg"
+            }, {
+                "id": 12,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1634087942/BlookParts/item12.svg"
+            }, {
+                "id": 13,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1634087944/BlookParts/item13.svg"
+            }, {
+                "id": 14,
+                "numInName": 14,
+                "url": "https://media.blooket.com/image/upload/v1664323225/BlookParts/item14.svg"
+            }, {
+                "id": 15,
+                "numInName": 15,
+                "url": "https://media.blooket.com/image/upload/v1664323225/BlookParts/item15.svg"
+            }, {
+                "id": 16,
+                "numInName": 16,
+                "url": "https://media.blooket.com/image/upload/v1664323225/BlookParts/item16.svg"
+            }, {
+                "id": 17,
+                "numInName": 17,
+                "url": "https://media.blooket.com/image/upload/v1664324849/BlookParts/item17.svg"
+            }, {
+                "id": 18,
+                "numInName": 18,
+                "url": "https://media.blooket.com/image/upload/v1664324849/BlookParts/item18.svg"
+            }, {
+                "id": 19,
+                "numInName": 19,
+                "url": "https://media.blooket.com/image/upload/v1664324849/BlookParts/item19.svg"
+            }, {
+                "id": 20,
+                "numInName": 20,
+                "url": "https://media.blooket.com/image/upload/v1664325715/BlookParts/item20.svg"
+            }, {
+                "id": 21,
+                "numInName": 21,
+                "url": "https://media.blooket.com/image/upload/v1664325715/BlookParts/item21.svg"
+            }, {
+                "id": 22,
+                "numInName": 22,
+                "url": "https://media.blooket.com/image/upload/v1664342232/BlookParts/item22.svg"
+            }, {
+                "id": 23,
+                "numInName": 23,
+                "url": "https://media.blooket.com/image/upload/v1664325717/BlookParts/item23.svg"
+            }, {
+                "id": 24,
+                "numInName": 24,
+                "url": "https://media.blooket.com/image/upload/v1664325717/BlookParts/item24.svg"
+            }, {
+                "id": 25,
+                "numInName": 25,
+                "url": "https://media.blooket.com/image/upload/v1664325717/BlookParts/item25.svg"
+            }, {
+                "id": 26,
+                "numInName": 26,
+                "url": "https://media.blooket.com/image/upload/v1664325717/BlookParts/item26.svg"
+            }, {
+                "id": 27,
+                "numInName": 27,
+                "url": "https://media.blooket.com/image/upload/v1664326436/BlookParts/item27.svg"
+            }, {
+                "id": 28,
+                "numInName": 28,
+                "url": "https://media.blooket.com/image/upload/v1664334116/BlookParts/item28.svg"
+            }, {
+                "id": 29,
+                "numInName": 29,
+                "url": "https://media.blooket.com/image/upload/v1664334117/BlookParts/item29.svg"
+            }, {
+                "id": 30,
+                "numInName": 30,
+                "url": "https://media.blooket.com/image/upload/v1664334118/BlookParts/item30.svg"
+            }, {
+                "id": 31,
+                "numInName": 31,
+                "url": "https://media.blooket.com/image/upload/v1664334118/BlookParts/item31.svg"
+            }, {
+                "id": 32,
+                "numInName": 32,
+                "url": "https://media.blooket.com/image/upload/v1666686889/BlookParts/item32.svg"
+            }, {
+                "id": 33,
+                "numInName": 33,
+                "url": "https://media.blooket.com/image/upload/v1666686889/BlookParts/item33.svg"
+            }, {
+                "id": 34,
+                "numInName": 34,
+                "url": "https://media.blooket.com/image/upload/v1669084280/BlookParts/item34.svg"
+            }, {
+                "id": 35,
+                "numInName": 35,
+                "url": "https://media.blooket.com/image/upload/v1671528728/BlookParts/item35.svg"
+            }, {
+                "id": 36,
+                "numInName": 36,
+                "url": "https://media.blooket.com/image/upload/v1678767661/BlookParts/item36.svg"
+            }, {
+                "id": 37,
+                "numInName": 37,
+                "url": "https://media.blooket.com/image/upload/v1695265651/BlookParts/item37.svg"
+            }, {
+                "id": 38,
+                "numInName": 38,
+                "url": "https://media.blooket.com/image/upload/v1695265651/BlookParts/item38.svg"
+            }, {
+                "id": 39,
+                "numInName": 39,
+                "url": "https://media.blooket.com/image/upload/v1695265651/BlookParts/item39.svg"
+            }, {
+                "id": 40,
+                "numInName": 40,
+                "url": "https://media.blooket.com/image/upload/v1695265652/BlookParts/item40.svg"
+            }, {
+                "id": 41,
+                "numInName": 41,
+                "url": "https://media.blooket.com/image/upload/v1695265652/BlookParts/item41.svg"
+            }, {
+                "id": 42,
+                "numInName": 42,
+                "url": "https://media.blooket.com/image/upload/v1695265652/BlookParts/item42.svg"
+            }, {
+                "id": 43,
+                "numInName": 43,
+                "url": "https://media.blooket.com/image/upload/v1695265653/BlookParts/item43.svg"
+            }, {
+                "id": 44,
+                "numInName": 44,
+                "url": "https://media.blooket.com/image/upload/v1695265653/BlookParts/item44.svg"
+            }, {
+                "id": 45,
+                "numInName": 45,
+                "url": "https://media.blooket.com/image/upload/v1695265653/BlookParts/item45.svg"
+            }, {
+                "id": 46,
+                "numInName": 46,
+                "url": "https://media.blooket.com/image/upload/v1695265654/BlookParts/item46.svg"
+            }, {
+                "id": 47,
+                "numInName": 47,
+                "url": "https://media.blooket.com/image/upload/v1695265654/BlookParts/item47.svg"
+            }, {
+                "id": 48,
+                "numInName": 48,
+                "url": "https://media.blooket.com/image/upload/v1767654254/BlookParts/item48v2.svg"
+            }, {
+                "id": 49,
+                "numInName": 49,
+                "url": "https://media.blooket.com/image/upload/v1695265655/BlookParts/item49.svg"
+            }, {
+                "id": 50,
+                "numInName": 50,
+                "url": "https://media.blooket.com/image/upload/v1695265655/BlookParts/item50.svg"
+            }, {
+                "id": 51,
+                "numInName": 51,
+                "url": "https://media.blooket.com/image/upload/v1695265656/BlookParts/item51.svg"
+            }, {
+                "id": 52,
+                "numInName": 52,
+                "url": "https://media.blooket.com/image/upload/v1695265656/BlookParts/item52.svg"
+            }, {
+                "id": 53,
+                "numInName": 53,
+                "url": "https://media.blooket.com/image/upload/v1695265656/BlookParts/item53.svg"
+            }, {
+                "id": 54,
+                "numInName": 54,
+                "url": "https://media.blooket.com/image/upload/v1695265657/BlookParts/item54.svg"
+            }, {
+                "id": 55,
+                "numInName": 55,
+                "url": "https://media.blooket.com/image/upload/v1695265657/BlookParts/item55.svg"
+            }, {
+                "id": 56,
+                "numInName": 56,
+                "url": "https://media.blooket.com/image/upload/v1701743199/BlookParts/item56.svg"
+            }, {
+                "id": 57,
+                "numInName": 57,
+                "url": "https://media.blooket.com/image/upload/v1701743199/BlookParts/item57.svg"
+            }, {
+                "id": 58,
+                "numInName": 58,
+                "url": "https://media.blooket.com/image/upload/v1726105812/BlookParts/item58.svg"
+            }, {
+                "id": 59,
+                "numInName": 59,
+                "url": "https://media.blooket.com/image/upload/v1726105813/BlookParts/item59.svg"
+            }, {
+                "id": 60,
+                "numInName": 60,
+                "url": "https://media.blooket.com/image/upload/v1726105814/BlookParts/item60.svg"
+            }, {
+                "id": 61,
+                "numInName": 61,
+                "url": "https://media.blooket.com/image/upload/v1726105815/BlookParts/item61.svg"
+            }, {
+                "id": 62,
+                "numInName": 62,
+                "url": "https://media.blooket.com/image/upload/v1728608104/BlookParts/item62.svg"
+            }, {
+                "id": 63,
+                "numInName": 63,
+                "url": "https://media.blooket.com/image/upload/v1728608104/BlookParts/item63.svg"
+            }, {
+                "id": 64,
+                "numInName": 64,
+                "url": "https://media.blooket.com/image/upload/v1728608104/BlookParts/item64.svg"
+            }, {
+                "id": 65,
+                "numInName": 65,
+                "url": "https://media.blooket.com/image/upload/v1728608104/BlookParts/item65.svg"
+            }, {
+                "id": 66,
+                "numInName": 66,
+                "url": "https://media.blooket.com/image/upload/v1733205074/BlookParts/item66.svg"
+            }, {
+                "id": 67,
+                "numInName": 67,
+                "url": "https://media.blooket.com/image/upload/v1733205074/BlookParts/item67.svg"
+            }, {
+                "id": 68,
+                "numInName": 68,
+                "url": "https://media.blooket.com/image/upload/v1758008899/BlookParts/item68.svg"
+            }, {
+                "id": 69,
+                "numInName": 69,
+                "url": "https://media.blooket.com/image/upload/v1758008899/BlookParts/item69.svg"
+            }, {
+                "id": 70,
+                "numInName": 70,
+                "url": "https://media.blooket.com/image/upload/v1758008901/BlookParts/item70.svg"
+            }, {
+                "id": 71,
+                "numInName": 71,
+                "url": "https://media.blooket.com/image/upload/v1758008901/BlookParts/item71.svg"
+            }, {
+                "id": 72,
+                "numInName": 72,
+                "url": "https://media.blooket.com/image/upload/v1758008903/BlookParts/item72.svg"
+            }, {
+                "id": 73,
+                "numInName": 73,
+                "url": "https://media.blooket.com/image/upload/v1767654254/BlookParts/item73v2.svg"
+            }, {
+                "id": 74,
+                "numInName": 74,
+                "url": "https://media.blooket.com/image/upload/v1758008903/BlookParts/item74.svg"
+            }, {
+                "id": 75,
+                "numInName": 75,
+                "url": "https://media.blooket.com/image/upload/v1758008903/BlookParts/item75.svg"
+            }, {
+                "id": 76,
+                "numInName": 76,
+                "url": "https://media.blooket.com/image/upload/v1758008904/BlookParts/item76.svg"
+            }, {
+                "id": 77,
+                "numInName": 77,
+                "url": "https://media.blooket.com/image/upload/v1758008904/BlookParts/item77.svg"
+            }, {
+                "id": 78,
+                "numInName": 78,
+                "url": "https://media.blooket.com/image/upload/v1758008904/BlookParts/item78.svg"
+            }, {
+                "id": 79,
+                "numInName": 79,
+                "url": "https://media.blooket.com/image/upload/v1758008905/BlookParts/item79.svg"
+            }, {
+                "id": 80,
+                "numInName": 80,
+                "url": "https://media.blooket.com/image/upload/v1758008908/BlookParts/item80.svg"
+            }],
+            "mouth": [{
+                "id": 1,
+                "numInName": 0,
+                "url": "https://media.blooket.com/image/upload/v1634087948/BlookParts/mouth0.svg"
+            }, {
+                "id": 2,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087948/BlookParts/mouth1.svg"
+            }, {
+                "id": 3,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087957/BlookParts/mouth2.svg"
+            }, {
+                "id": 4,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087958/BlookParts/mouth3.svg"
+            }, {
+                "id": 5,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087959/BlookParts/mouth4.svg"
+            }, {
+                "id": 6,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087959/BlookParts/mouth5.svg"
+            }, {
+                "id": 7,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087960/BlookParts/mouth6.svg"
+            }, {
+                "id": 8,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1634087963/BlookParts/mouth7.svg"
+            }, {
+                "id": 9,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1634087967/BlookParts/mouth8.svg"
+            }, {
+                "id": 10,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1634087968/BlookParts/mouth9.svg"
+            }, {
+                "id": 11,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1634087974/BlookParts/mouth10.svg"
+            }, {
+                "id": 12,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1634087975/BlookParts/mouth11.svg"
+            }, {
+                "id": 13,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1664326436/BlookParts/mouth12.svg"
+            }, {
+                "id": 14,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1664326436/BlookParts/mouth13.svg"
+            }, {
+                "id": 15,
+                "numInName": 14,
+                "url": "https://media.blooket.com/image/upload/v1664334118/BlookParts/mouth14.svg"
+            }, {
+                "id": 16,
+                "numInName": 15,
+                "url": "https://media.blooket.com/image/upload/v1664334118/BlookParts/mouth15.svg"
+            }, {
+                "id": 17,
+                "numInName": 16,
+                "url": "https://media.blooket.com/image/upload/v1664334119/BlookParts/mouth16.svg"
+            }, {
+                "id": 18,
+                "numInName": 17,
+                "url": "https://media.blooket.com/image/upload/v1664334110/BlookParts/mouth17.svg"
+            }, {
+                "id": 19,
+                "numInName": 18,
+                "url": "https://media.blooket.com/image/upload/v1695265657/BlookParts/mouth18.svg"
+            }, {
+                "id": 20,
+                "numInName": 19,
+                "url": "https://media.blooket.com/image/upload/v1758008910/BlookParts/mouth19-2.svg"
+            }, {
+                "id": 21,
+                "numInName": 20,
+                "url": "https://media.blooket.com/image/upload/v1695265658/BlookParts/mouth20.svg"
+            }, {
+                "id": 22,
+                "numInName": 21,
+                "url": "https://media.blooket.com/image/upload/v1695265659/BlookParts/mouth21.svg"
+            }, {
+                "id": 23,
+                "numInName": 22,
+                "url": "https://media.blooket.com/image/upload/v1696372287/BlookParts/mouth22.svg"
+            }, {
+                "id": 24,
+                "numInName": 23,
+                "url": "https://media.blooket.com/image/upload/v1726105816/BlookParts/mouth23.svg"
+            }, {
+                "id": 25,
+                "numInName": 24,
+                "url": "https://media.blooket.com/image/upload/v1726105817/BlookParts/mouth24.svg"
+            }, {
+                "id": 26,
+                "numInName": 25,
+                "url": "https://media.blooket.com/image/upload/v1726105818/BlookParts/mouth25.svg"
+            }, {
+                "id": 27,
+                "numInName": 26,
+                "url": "https://media.blooket.com/image/upload/v1726105819/BlookParts/mouth26.svg"
+            }, {
+                "id": 28,
+                "numInName": 27,
+                "url": "https://media.blooket.com/image/upload/v1726105819/BlookParts/mouth27.svg"
+            }, {
+                "id": 29,
+                "numInName": 28,
+                "url": "https://media.blooket.com/image/upload/v1726105819/BlookParts/mouth28.svg"
+            }, {
+                "id": 30,
+                "numInName": 29,
+                "url": "https://media.blooket.com/image/upload/v1726105819/BlookParts/mouth29.svg"
+            }, {
+                "id": 31,
+                "numInName": 30,
+                "url": "https://media.blooket.com/image/upload/v1726105820/BlookParts/mouth30.svg"
+            }, {
+                "id": 32,
+                "numInName": 31,
+                "url": "https://media.blooket.com/image/upload/v1758008910/BlookParts/mouth31.svg"
+            }, {
+                "id": 33,
+                "numInName": 32,
+                "url": "https://media.blooket.com/image/upload/v1758008911/BlookParts/mouth32.svg"
+            }, {
+                "id": 34,
+                "numInName": 33,
+                "url": "https://media.blooket.com/image/upload/v1758008911/BlookParts/mouth33.svg"
+            }],
+            "nose": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087975/BlookParts/nose1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087979/BlookParts/nose2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087989/BlookParts/nose3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087992/BlookParts/nose4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087993/BlookParts/nose5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1634087993/BlookParts/nose6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1664334110/BlookParts/nose7.svg"
+            }, {
+                "id": 8,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1666686854/BlookParts/nose8.svg"
+            }, {
+                "id": 9,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1726105820/BlookParts/nose9.svg"
+            }, {
+                "id": 10,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1726105820/BlookParts/nose10.svg"
+            }, {
+                "id": 11,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1726105821/BlookParts/nose11.svg"
+            }, {
+                "id": 12,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1726105821/BlookParts/nose12.svg"
+            }],
+            "cheeks": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087705/BlookParts/cheeks1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087706/BlookParts/cheeks2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087696/BlookParts/cheeks3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087718/BlookParts/cheeks4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1664342241/BlookParts/cheeks5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1664325848/BlookParts/cheeks6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1695265659/BlookParts/cheeks7.svg"
+            }],
+            "eyebrows": [{
+                "id": 1,
+                "numInName": 1,
+                "url": "https://media.blooket.com/image/upload/v1634087694/BlookParts/eyebrows1.svg"
+            }, {
+                "id": 2,
+                "numInName": 2,
+                "url": "https://media.blooket.com/image/upload/v1634087695/BlookParts/eyebrows2.svg"
+            }, {
+                "id": 3,
+                "numInName": 3,
+                "url": "https://media.blooket.com/image/upload/v1634087695/BlookParts/eyebrows3.svg"
+            }, {
+                "id": 4,
+                "numInName": 4,
+                "url": "https://media.blooket.com/image/upload/v1634087695/BlookParts/eyebrows4.svg"
+            }, {
+                "id": 5,
+                "numInName": 5,
+                "url": "https://media.blooket.com/image/upload/v1634087706/BlookParts/eyebrows5.svg"
+            }, {
+                "id": 6,
+                "numInName": 6,
+                "url": "https://media.blooket.com/image/upload/v1664326438/BlookParts/eyebrows6.svg"
+            }, {
+                "id": 7,
+                "numInName": 7,
+                "url": "https://media.blooket.com/image/upload/v1664326438/BlookParts/eyebrows7.svg"
+            }, {
+                "id": 8,
+                "numInName": 8,
+                "url": "https://media.blooket.com/image/upload/v1664334112/BlookParts/eyebrows8.svg"
+            }, {
+                "id": 9,
+                "numInName": 9,
+                "url": "https://media.blooket.com/image/upload/v1664334112/BlookParts/eyebrows9.svg"
+            }, {
+                "id": 10,
+                "numInName": 10,
+                "url": "https://media.blooket.com/image/upload/v1678767661/BlookParts/eyebrows10.svg"
+            }, {
+                "id": 11,
+                "numInName": 11,
+                "url": "https://media.blooket.com/image/upload/v1696372289/BlookParts/eyebrows11.svg"
+            }, {
+                "id": 12,
+                "numInName": 12,
+                "url": "https://media.blooket.com/image/upload/v1726105773/BlookParts/eyebrows12.svg"
+            }, {
+                "id": 13,
+                "numInName": 13,
+                "url": "https://media.blooket.com/image/upload/v1758008857/BlookParts/eyebrows13.svg"
+            }],
+            "unknown": [{
+                "id": 1,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567787/Media/market/particles/square_green.svg"
+            }, {
+                "id": 2,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567787/Media/market/particles/square_light_green.svg"
+            }, {
+                "id": 3,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567785/Media/market/particles/circle_dark_green.svg"
+            }, {
+                "id": 4,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567785/Media/market/particles/serpentine_dark_green.svg"
+            }, {
+                "id": 5,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567785/Media/market/particles/triangle_light_green.svg"
+            }, {
+                "id": 6,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567785/Media/market/particles/serpentine_light_green.svg"
+            }, {
+                "id": 7,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567785/Media/market/particles/triangle_green.svg"
+            }, {
+                "id": 8,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567765/Media/market/particles/square_light_blue.svg"
+            }, {
+                "id": 9,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567765/Media/market/particles/square_dark_blue.svg"
+            }, {
+                "id": 10,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567763/Media/market/particles/triangle_blue.svg"
+            }, {
+                "id": 11,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567763/Media/market/particles/serpentine_blue.svg"
+            }, {
+                "id": 12,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567763/Media/market/particles/triangle_light_blue.svg"
+            }, {
+                "id": 13,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567763/Media/market/particles/serpentine_light_blue.svg"
+            }, {
+                "id": 14,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567763/Media/market/particles/circle_dark_blue.svg"
+            }, {
+                "id": 15,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790239/Media/market/particles/red.svg"
+            }, {
+                "id": 16,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790237/Media/market/particles/light_red.svg"
+            }, {
+                "id": 17,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790239/Media/market/particles/serpentine_red.svg"
+            }, {
+                "id": 18,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790239/Media/market/particles/serpentine_dark_red.svg"
+            }, {
+                "id": 19,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790237/Media/market/particles/triangle_red.svg"
+            }, {
+                "id": 20,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790237/Media/market/particles/triangle_light_red.svg"
+            }, {
+                "id": 21,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790237/Media/market/particles/circle_dark_red.svg"
+            }, {
+                "id": 22,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567740/Media/market/particles/square_orange.svg"
+            }, {
+                "id": 23,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567740/Media/market/particles/square_light_orange.svg"
+            }, {
+                "id": 24,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567738/Media/market/particles/circle_orange.svg"
+            }, {
+                "id": 25,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567738/Media/market/particles/serpentine_orange.svg"
+            }, {
+                "id": 26,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567738/Media/market/particles/serpentine_light_orange.svg"
+            }, {
+                "id": 27,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567738/Media/market/particles/circle_dark_orange.svg"
+            }, {
+                "id": 28,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658567738/Media/market/particles/triangle_dark_orange.svg"
+            }, {
+                "id": 29,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790246/Media/market/particles/square_turquoise.svg"
+            }, {
+                "id": 30,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790246/Media/market/particles/square_light_turquoise.svg"
+            }, {
+                "id": 31,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790244/Media/market/particles/serpentine_dark_turquoise.svg"
+            }, {
+                "id": 32,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790244/Media/market/particles/serpentine_turquoise.svg"
+            }, {
+                "id": 33,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790244/Media/market/particles/triangle_turquoise.svg"
+            }, {
+                "id": 34,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790244/Media/market/particles/triangle_light_turquoise.svg"
+            }, {
+                "id": 35,
+                "numInName": null,
+                "url": "https://media.blooket.com/image/upload/v1658790244/Media/market/particles/circle_dark_turquoise.svg"
+            }]
+        };
 
         function getPartUrl(category, numInName) {
             const list = partsData[category];
@@ -10460,21 +13221,9 @@ button,
                 });
             }
         }
-        fetch(PARTS_JSON_URL)
-            .then(r => r.json())
-            .then(data => {
-                Object.keys(data).forEach(key => {
-                    if (key !== 'unknown') partsData[key] = data[key];
-                });
-                renderStack();
-                updateCodeDisplay();
-                renderBlookEditorPresets();
-            })
-            .catch(err => {
-                renderStack();
-                updateCodeDisplay();
-                renderBlookEditorPresets();
-            });
+        renderStack();
+        updateCodeDisplay();
+        renderBlookEditorPresets();
         const clientPage = document.createElement("div");
         clientPage.className = classes.favoritesPage || "favoritesPage";
         Object.assign(clientPage.style, {
@@ -11237,15 +13986,36 @@ button,
                 loadBtn.onclick = (e) => {
                     e.stopPropagation();
                     loadFromData(preset);
+                    Swal.fire({
+                        toast: true,
+                        position: "bottom",
+                        icon: "success",
+                        title: `"${preset.name}" loaded!`,
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
                 };
                 const deleteBtn = document.createElement("button");
                 deleteBtn.className = "preset-btn preset-btn-delete";
                 deleteBtn.textContent = "Delete";
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
-                    const updated = presets.filter((_, i) => i !== idx);
-                    savePresets(updated);
-                    renderPresets();
+                    Swal.fire({
+                        title: "Delete Preset?",
+                        text: `"${preset.name}" will be permanently deleted.`,
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#ef4444",
+                        cancelButtonColor: "#5b4bdb",
+                        confirmButtonText: "Delete",
+                        cancelButtonText: "Cancel"
+                    }).then(result => {
+                        if (!result.isConfirmed) return;
+                        const updated = presets.filter((_, i) => i !== idx);
+                        savePresets(updated);
+                        renderPresets();
+                    });
                 };
                 actions.append(loadBtn, deleteBtn);
                 card.append(img, nameDiv, rarityDiv, actions);
@@ -11282,11 +14052,33 @@ button,
             updatePreview();
         };
         applyBtn.onclick = () => {
-            updateBlook(imgIn.value, bgIn.value, nameIn.value, rareIn.value, colIn.value);
+            try {
+                updateBlook(imgIn.value, bgIn.value, nameIn.value, rareIn.value, colIn.value);
+                Swal.fire({
+                    toast: true,
+                    position: "bottom",
+                    icon: "success",
+                    title: "Blook applied!",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            } catch (err) {
+                Swal.fire({
+                    title: "Failed to apply blook",
+                    text: err.message || "Something went wrong.",
+                    icon: "error",
+                    confirmButtonColor: "#5b4bdb"
+                });
+            }
         };
         saveBtn.onclick = () => {
             if (!nameIn.value.trim()) {
-                alert("Please enter a blook name");
+                Swal.fire({
+                    title: "Please enter a blook name",
+                    icon: "warning",
+                    confirmButtonColor: "#5b4bdb"
+                });
                 return;
             }
             const preset = {
@@ -11300,6 +14092,15 @@ button,
             presets.push(preset);
             savePresets(presets);
             renderPresets();
+            Swal.fire({
+                toast: true,
+                position: "bottom",
+                icon: "success",
+                title: `"${nameIn.value.trim()}" saved!`,
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
         };
         uploadImageBtn.onclick = async () => {
             const fileInput = document.createElement('input');
@@ -11324,9 +14125,23 @@ button,
                     const imgJson = await imgResp.json();
                     const uploadedUrl = "https://media.blooket.com/image/upload/" + imgJson.public_id;
                     urlDisplay.textContent = uploadedUrl;
+                    Swal.fire({
+                        toast: true,
+                        position: "bottom",
+                        icon: "success",
+                        title: "Image uploaded!",
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
                 } catch (err) {
+                    Swal.fire({
+                        title: "Failed To Upload Image",
+                        text: err.message || "Something went wrong uploading the image.",
+                        icon: "error",
+                        confirmButtonColor: "#8b5cf6"
+                    });
                     console.error("Upload failed:", err);
-                    alert("Failed to upload image: " + err.message);
                     urlDisplay.textContent = "Upload an image to see the URL here";
                 }
             };
@@ -11352,7 +14167,12 @@ button,
         loadSeedBtn.onclick = () => {
             const seed = seedIn.value.trim();
             if (!seed) {
-                alert("Please paste a seed first");
+                Swal.fire({
+                    title: "No Seed",
+                    text: "Please paste a seed first.",
+                    icon: "warning",
+                    confirmButtonColor: "#8b5cf6"
+                });
                 return;
             }
             try {
@@ -11365,8 +14185,22 @@ button,
                 loadFromData(decoded);
                 seedIn.value = "";
                 seedDisplay.textContent = JSON.stringify(decoded, null, 2);
+                Swal.fire({
+                    toast: true,
+                    position: "bottom",
+                    icon: "success",
+                    title: "Seed imported!",
+                    showConfirmButton: false,
+                    timer: 1800,
+                    timerProgressBar: true
+                });
             } catch {
-                alert("Invalid seed format");
+                Swal.fire({
+                    title: "Invalid Seed",
+                    text: "The seed format is not valid. Please try again.",
+                    icon: "error",
+                    confirmButtonColor: "#8b5cf6"
+                });
             }
         };
         exportSeedBtn.onclick = () => {
@@ -13304,13 +16138,16 @@ function(amount) {
         <path d="M12 2l3.2 6.7L22 9.3l-5 4.3L18.4 22 12 18.3 5.6 22 7 13.6 2 9.3l6.8-.6L12 2z"/>
       </svg>`,
                 trophy: `
-      <svg xmlns="http://www.w3.org/2000/svg"
-           viewBox="0 0 24 24" width="1em" height="1em"
-           fill="none" stroke="currentColor"
-           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 21h8M8 17v4M16 17v4"/>
-        <path d="M7 3h10v4a5 5 0 01-10 0V3z"/>
-      </svg>`,
+        <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 20 26" width="1em" height="1em"
+     fill="none" stroke="currentColor"
+     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M7 3h6a2 2 0 012 2v6a4 4 0 01-4 4h-2a4 4 0 01-4-4V5a2 2 0 012-2z"/>
+  <path d="M5 6H3a2 2 0 00-2 2v2a3 3 0 003 3"/>
+  <path d="M15 6h2a2 2 0 012 2v2a3 3 0 01-3 3"/>
+  <path d="M7 23h6M7 19v4M13 19v4"/>
+  <path d="M10 15v4"/>
+</svg>`,
                 alt: `
     <svg xmlns="http://www.w3.org/2000/svg"
        viewBox="0 0 24 24" width="1em" height="1em"
@@ -13432,7 +16269,7 @@ function(amount) {
         createSidebarPath("Search", "search", searchPage);
         createSidebarPath("Gamemodes", "gamepad", gamemodesPage);
         createSidebarPath("Favorites", "star", favoritesPage);
-        (leaderboardPath = createSidebarPath("Leaderboard", "trophy", leaderboardPage)).style.display = "none";
+        createSidebarPath("Leaderboard", "trophy", leaderboardPage);
         createSidebarPath("Logs", "terminal", logsPage);
         createSidebarPath("Alt Manager", "alt", altPage);
         createSidebarPath("Blook Editor", "editor", blookPage);
@@ -13481,45 +16318,72 @@ function(amount) {
         document.body.appendChild(gui);
         async function detectCSP() {
             try {
-                const res = await fetch(location.href);
-                const cspHeader = res.headers.get("content-security-policy");
-                if (cspHeader) return true;
-                const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-                if (meta) return true;
-                return false;
-            } catch {
-                return false;
-            }
+                const s = document.createElement('script');
+                s.textContent = 'window.__csp=true';
+                document.head.appendChild(s);
+                document.head.removeChild(s);
+            } catch (e) {}
+            const blocked = !window.__csp;
+            delete window.__csp;
+            const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+            return blocked || !!meta?.content.includes('script-src');
         }
 
         function createCSPOverlay(targetPage) {
-            if (targetPage.querySelector?.('.xgui-csp-notice')) return;
-            const blurWrap = document.createElement('div');
-            blurWrap.style.cssText = 'filter:blur(8px);pointer-events:none';
-            while (targetPage.firstChild) blurWrap.appendChild(targetPage.firstChild);
+            if (!targetPage || targetPage.querySelector?.('.xgui-csp-notice')) return;
+
+            const pageStyle = getComputedStyle(targetPage);
+            if (pageStyle.position === "static") {
+                targetPage.style.position = "relative";
+            }
+
+            targetPage.style.overflow = "visible";
+
+            const blurWrap = document.createElement("div");
+            blurWrap.className = "xgui-csp-blur";
+            blurWrap.style.cssText = `
+        width:100%;
+        height:100%;
+        filter:blur(8px);
+        pointer-events:none;
+        user-select:none;
+    `;
+
+            while (targetPage.firstChild) {
+                blurWrap.appendChild(targetPage.firstChild);
+            }
             targetPage.appendChild(blurWrap);
-            targetPage.style.cssText += ';position:relative;overflow:visible';
-            const overlay = document.createElement('div');
-            overlay.className = 'xgui-csp-notice';
-            overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;z-index:2000;padding:20px;overflow:visible';
-            const card = document.createElement('div');
+
+            const overlay = document.createElement("div");
+            overlay.className = "xgui-csp-notice";
+            overlay.style.cssText = `
+        position:absolute;
+        inset:0;
+        display:flex;
+        align-items:flex-start;
+        justify-content:center;
+        z-index:2000;
+        padding-top:10px;
+        box-sizing:border-box;
+        pointer-events:none;
+        overflow:visible;
+    `;
+
+            const card = document.createElement("div");
             card.style.cssText = `
-        max-width:380px;width:100%;padding:40px 35px;border-radius:20px;text-align:center;
-        backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+        max-width:380px;
+        width:100%;
+        padding:40px 35px;
+        border-radius:20px;
+        text-align:center;
+        backdrop-filter:blur(24px) saturate(180%);
+        -webkit-backdrop-filter:blur(24px) saturate(180%);
         background:linear-gradient(145deg,rgba(138,43,226,.15),rgba(75,0,130,.1));
         border:1.5px solid rgba(255,255,255,.15);
         box-shadow:0 10px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08) inset,0 25px 70px rgba(138,43,226,.2);
+        pointer-events:auto;
     `;
-            const btn = document.createElement('a');
-            btn.href = 'https://x-gui.netlify.app/extension';
-            btn.target = '_blank';
-            btn.textContent = 'Get Extension';
-            btn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#5865F2,#4752C4);color:#fff;font-size:15px;font-weight:600;padding:14px 32px;border-radius:12px;text-decoration:none;box-shadow:0 6px 20px rgba(88,101,242,.4);transition:all .3s ease';
-            btn.onmouseenter = () => btn.style.cssText += ';transform:translateY(-3px) scale(1.02);box-shadow:0 10px 30px rgba(88,101,242,.6)';
-            btn.onmouseleave = () => {
-                btn.style.transform = '';
-                btn.style.boxShadow = '0 6px 20px rgba(88,101,242,.4)';
-            };
+
             card.innerHTML = `
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" style="color:#fff;filter:drop-shadow(0 4px 16px rgba(255,255,255,.3));margin-bottom:20px">
             <path d="M12 2L4 6V11C4 16 7 20 12 22C17 20 20 16 20 11V6L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -13528,13 +16392,38 @@ function(amount) {
         <div style="color:#fff;font-size:32px;font-weight:800;letter-spacing:-.5px;margin-bottom:16px;text-shadow:0 2px 20px rgba(138,43,226,.6)">CSP Detected</div>
         <div style="color:#fff;font-size:15px;line-height:1.6;margin-bottom:30px">This is not supported on your version. Please use the extension version or get the CSP unblock extension.</div>
     `;
+
+            const btn = document.createElement("a");
+            btn.href = "https://x-gui.netlify.app/extension";
+            btn.target = "_blank";
+            btn.rel = "noopener noreferrer";
+            btn.textContent = "Get Extension";
+            btn.style.cssText = `
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        background:linear-gradient(135deg,#5865F2,#4752C4);
+        color:#fff;
+        font-size:15px;
+        font-weight:600;
+        padding:14px 32px;
+        border-radius:12px;
+        text-decoration:none;
+        box-shadow:0 6px 20px rgba(88,101,242,.4);
+        transition:transform .3s ease, box-shadow .3s ease;
+    `;
+            btn.onmouseenter = () => {
+                btn.style.transform = "translateY(-3px) scale(1.02)";
+                btn.style.boxShadow = "0 10px 30px rgba(88,101,242,.6)";
+            };
+            btn.onmouseleave = () => {
+                btn.style.transform = "";
+                btn.style.boxShadow = "0 6px 20px rgba(88,101,242,.4)";
+            };
+
             card.appendChild(btn);
             overlay.appendChild(card);
-            try {
-                targetPage.appendChild(overlay);
-            } catch {
-                document.body.appendChild(overlay);
-            }
+            targetPage.appendChild(overlay);
         }
         if (await detectCSP()) {
             Logs.addLog("CSP Detected - Custom modules disabled", "red");
